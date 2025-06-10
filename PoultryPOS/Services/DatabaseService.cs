@@ -5,10 +5,12 @@ namespace PoultryPOS.Services
 {
     public class DatabaseService
     {
+        private readonly string _masterConnectionString;
         private readonly string _connectionString;
 
         public DatabaseService()
         {
+            _masterConnectionString = "Server=.\\posserver;Database=master;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True;";
             _connectionString = "Server=.\\posserver;Database=PoultryPOS;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True;";
         }
 
@@ -18,6 +20,27 @@ namespace PoultryPOS.Services
         }
 
         public void InitializeDatabase()
+        {
+            CreateDatabaseIfNotExists();
+            CreateTablesIfNotExist();
+        }
+
+        private void CreateDatabaseIfNotExists()
+        {
+            using var connection = new SqlConnection(_masterConnectionString);
+            connection.Open();
+
+            var checkDbCommand = new SqlCommand("SELECT COUNT(*) FROM sys.databases WHERE name = 'PoultryPOS'", connection);
+            var dbExists = (int)checkDbCommand.ExecuteScalar() > 0;
+
+            if (!dbExists)
+            {
+                var createDbCommand = new SqlCommand("CREATE DATABASE PoultryPOS", connection);
+                createDbCommand.ExecuteNonQuery();
+            }
+        }
+
+        private void CreateTablesIfNotExist()
         {
             using var connection = GetConnection();
             connection.Open();
