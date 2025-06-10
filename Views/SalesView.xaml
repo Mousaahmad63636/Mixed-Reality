@@ -1,0 +1,108 @@
+﻿<Page x:Class="PoultryPOS.Views.SalesView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Sales - POS">
+    <Grid Margin="20">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="20"/>
+            <ColumnDefinition Width="1*"/>
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0" Background="White" BorderBrush="#DDD" BorderThickness="1" Padding="20">
+            <StackPanel>
+                <TextBlock Text="NEW SALE" FontSize="24" FontWeight="Bold" Margin="0,0,0,20" HorizontalAlignment="Center"/>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Truck:" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <ComboBox Name="cmbTruck" Height="30" Margin="0,0,0,15"/>
+
+                        <TextBlock Text="Driver:" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <ComboBox Name="cmbDriver" Height="30" Margin="0,0,0,15"/>
+
+                        <TextBlock Text="Customer:" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <ComboBox Name="cmbCustomer" Height="30" Margin="0,0,0,15" SelectionChanged="CmbCustomer_SelectionChanged"/>
+
+                        <TextBlock Name="lblCurrentBalance" Text="" FontWeight="Bold" Foreground="Red" Margin="0,0,0,15"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Gross Weight (KG):" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <TextBox Name="txtGrossWeight" Height="30" Margin="0,0,0,15" TextChanged="CalculateWeights"/>
+
+                        <TextBlock Text="Number of Cages:" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <TextBox Name="txtNumberOfCages" Height="30" Margin="0,0,0,15" TextChanged="CalculateWeights"/>
+
+                        <TextBlock Text="Cage Weight (KG):" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <TextBox Name="txtCageWeight" Height="30" Margin="0,0,0,15" TextChanged="CalculateWeights"/>
+
+                        <TextBlock Text="Net Weight (KG):" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <TextBox Name="txtNetWeight" Height="30" Margin="0,0,0,15" IsReadOnly="True" Background="#F5F5F5"/>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Margin="0,20,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Price per KG:" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <TextBox Name="txtPricePerKg" Height="30" Margin="0,0,0,15" TextChanged="CalculateTotal"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Total Amount:" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <TextBox Name="txtTotalAmount" Height="30" Margin="0,0,0,15" IsReadOnly="True" Background="#F5F5F5" FontWeight="Bold" FontSize="14"/>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Margin="0,20,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button Grid.Column="0" Name="btnPayNow" Content="PAY NOW" Height="40" Background="#27AE60" 
+                            Foreground="White" FontWeight="Bold" Click="BtnPayNow_Click"/>
+                    <Button Grid.Column="2" Name="btnAddToAccount" Content="ADD TO ACCOUNT" Height="40" Background="#E67E22" 
+                            Foreground="White" FontWeight="Bold" Click="BtnAddToAccount_Click"/>
+                </Grid>
+
+                <Button Name="btnClear" Content="CLEAR FORM" Height="35" Margin="0,20,0,0" Background="#95A5A6" 
+                        Foreground="White" FontWeight="Bold" Click="BtnClear_Click"/>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Column="2" Background="White" BorderBrush="#DDD" BorderThickness="1" Padding="15">
+            <StackPanel>
+                <TextBlock Text="TODAY'S SALES" FontSize="18" FontWeight="Bold" Margin="0,0,0,15" HorizontalAlignment="Center"/>
+
+                <DataGrid Name="dgTodaySales" Height="400" AutoGenerateColumns="False" 
+                          HeadersVisibility="Column" GridLinesVisibility="Horizontal" 
+                          AlternatingRowBackground="#F8F9FA" IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="*"/>
+                        <DataGridTextColumn Header="Amount" Binding="{Binding TotalAmount, StringFormat=C}" Width="80"/>
+                        <DataGridTextColumn Header="Time" Binding="{Binding SaleDate, StringFormat=HH:mm}" Width="60"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <StackPanel Margin="0,15,0,0">
+                    <TextBlock Name="lblTodayTotal" Text="Today's Total: $0.00" FontWeight="Bold" FontSize="16" HorizontalAlignment="Center"/>
+                    <TextBlock Name="lblTodayCount" Text="Transactions: 0" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,5,0,0"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Page>

@@ -1,0 +1,78 @@
+﻿using Microsoft.Data.SqlClient;
+using PoultryPOS.Models;
+using System.Data;
+
+namespace PoultryPOS.Services
+{
+    public class TruckService
+    {
+        private readonly DatabaseService _dbService;
+
+        public TruckService()
+        {
+            _dbService = new DatabaseService();
+        }
+
+        public List<Truck> GetAll()
+        {
+            var trucks = new List<Truck>();
+            using var connection = _dbService.GetConnection();
+            connection.Open();
+
+            var command = new SqlCommand("SELECT * FROM Trucks WHERE IsActive = 1", connection);
+            using var reader = command.ExecuteReader();
+
+            while (reader.Read())
+            {
+                trucks.Add(new Truck
+                {
+                    Id = reader.GetInt32("Id"),
+                    Name = reader.GetString("Name"),
+                    CurrentLoad = reader.GetInt32("CurrentLoad"),
+                    PlateNumber = reader.IsDBNull("PlateNumber") ? null : reader.GetString("PlateNumber"),
+                    IsActive = reader.GetBoolean("IsActive")
+                });
+            }
+
+            return trucks;
+        }
+
+        public void Add(Truck truck)
+        {
+            using var connection = _dbService.GetConnection();
+            connection.Open();
+
+            var command = new SqlCommand("INSERT INTO Trucks (Name, CurrentLoad, PlateNumber) VALUES (@Name, @CurrentLoad, @PlateNumber)", connection);
+            command.Parameters.AddWithValue("@Name", truck.Name);
+            command.Parameters.AddWithValue("@CurrentLoad", truck.CurrentLoad);
+            command.Parameters.AddWithValue("@PlateNumber", truck.PlateNumber ?? (object)DBNull.Value);
+
+            command.ExecuteNonQuery();
+        }
+
+        public void Update(Truck truck)
+        {
+            using var connection = _dbService.GetConnection();
+            connection.Open();
+
+            var command = new SqlCommand("UPDATE Trucks SET Name = @Name, CurrentLoad = @CurrentLoad, PlateNumber = @PlateNumber WHERE Id = @Id", connection);
+            command.Parameters.AddWithValue("@Id", truck.Id);
+            command.Parameters.AddWithValue("@Name", truck.Name);
+            command.Parameters.AddWithValue("@CurrentLoad", truck.CurrentLoad);
+            command.Parameters.AddWithValue("@PlateNumber", truck.PlateNumber ?? (object)DBNull.Value);
+
+            command.ExecuteNonQuery();
+        }
+
+        public void Delete(int id)
+        {
+            using var connection = _dbService.GetConnection();
+            connection.Open();
+
+            var command = new SqlCommand("UPDATE Trucks SET IsActive = 0 WHERE Id = @Id", connection);
+            command.Parameters.AddWithValue("@Id", id);
+
+            command.ExecuteNonQuery();
+        }
+    }
+}

@@ -1,0 +1,168 @@
+﻿<Page x:Class="PoultryPOS.Views.HistoryView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Sales History">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="#2C3E50" Padding="20" Margin="0,0,0,20">
+            <StackPanel>
+                <TextBlock Text="📊 SALES HISTORY" FontSize="24" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" Margin="0,0,0,15"/>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Background="#34495E" Padding="15" Margin="0,0,5,0">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="Total Sales (All Time)" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            <TextBlock Name="lblTotalSales" Text="$0.00" Foreground="#1ABC9C" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="1" Background="#34495E" Padding="15" Margin="5,0,5,0">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="Period Sales" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            <TextBlock Name="lblPeriodSales" Text="$0.00" Foreground="#3498DB" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="2" Background="#34495E" Padding="15" Margin="5,0,5,0">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="Period Transactions" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            <TextBlock Name="lblPeriodTransactions" Text="0" Foreground="#E74C3C" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="3" Background="#34495E" Padding="15" Margin="5,0,0,0">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="Outstanding Balance" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            <TextBlock Name="lblOutstandingBalance" Text="$0.00" Foreground="#F39C12" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="1" Background="White" BorderBrush="#DDD" BorderThickness="1" Padding="20" Margin="0,0,0,20">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="🔍 FILTERS" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="From:" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                        <DatePicker Name="dpFromDate" Width="120" SelectedDateChanged="FilterTransactions"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text=" " FontSize="16" Margin="0,0,0,10"/>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="To:" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                        <DatePicker Name="dpToDate" Width="120" SelectedDateChanged="FilterTransactions"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Grid.Column="4">
+                    <TextBlock Text=" " FontSize="16" Margin="0,0,0,10"/>
+                    <ComboBox Name="cmbCustomerFilter" Width="150" SelectionChanged="FilterTransactions">
+                        <ComboBoxItem Content="All Customers"/>
+                    </ComboBox>
+                </StackPanel>
+
+                <StackPanel Grid.Column="6">
+                    <TextBlock Text=" " FontSize="16" Margin="0,0,0,10"/>
+                    <ComboBox Name="cmbTypeFilter" Width="120" SelectionChanged="FilterTransactions">
+                        <ComboBoxItem Content="All" IsSelected="True"/>
+                        <ComboBoxItem Content="Sales Only"/>
+                        <ComboBoxItem Content="Payments Only"/>
+                    </ComboBox>
+                </StackPanel>
+
+                <StackPanel Grid.Column="8" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <TextBlock Text=" " FontSize="16" Margin="0,0,0,10"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Button Name="btnToday" Content="TODAY" Width="60" Height="25" Background="#27AE60" 
+                                Foreground="White" FontWeight="Bold" Margin="0,0,5,0" Click="BtnToday_Click"/>
+                        <Button Name="btnThisWeek" Content="THIS WEEK" Width="80" Height="25" Background="#3498DB" 
+                                Foreground="White" FontWeight="Bold" Margin="0,0,5,0" Click="BtnThisWeek_Click"/>
+                        <Button Name="btnThisMonth" Content="THIS MONTH" Width="90" Height="25" Background="#9B59B6" 
+                                Foreground="White" FontWeight="Bold" Margin="0,0,5,0" Click="BtnThisMonth_Click"/>
+                        <Button Name="btnClearFilter" Content="CLEAR" Width="60" Height="25" Background="#95A5A6" 
+                                Foreground="White" FontWeight="Bold" Click="BtnClearFilter_Click"/>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="2" Background="White" BorderBrush="#DDD" BorderThickness="1" Padding="20">
+            <StackPanel>
+                <TextBlock Text="📋 TRANSACTIONS" FontSize="18" FontWeight="Bold" Margin="0,0,0,15" HorizontalAlignment="Center"/>
+
+                <DataGrid Name="dgTransactions" Height="400" AutoGenerateColumns="False" 
+                          HeadersVisibility="Column" GridLinesVisibility="Horizontal" 
+                          AlternatingRowBackground="#F8F9FA" IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat=yyyy-MM-dd}" Width="100"/>
+                        <DataGridTextColumn Header="Time" Binding="{Binding Date, StringFormat=HH:mm}" Width="60"/>
+                        <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="*"/>
+                        <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="80">
+                            <DataGridTextColumn.CellStyle>
+                                <Style TargetType="DataGridCell">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Type}" Value="Sale">
+                                            <Setter Property="Foreground" Value="Blue"/>
+                                            <Setter Property="FontWeight" Value="Bold"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Type}" Value="Payment">
+                                            <Setter Property="Foreground" Value="Green"/>
+                                            <Setter Property="FontWeight" Value="Bold"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGridTextColumn.CellStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Amount" Binding="{Binding AmountDisplay}" Width="100">
+                            <DataGridTextColumn.CellStyle>
+                                <Style TargetType="DataGridCell">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Type}" Value="Sale">
+                                            <Setter Property="Foreground" Value="Blue"/>
+                                            <Setter Property="FontWeight" Value="Bold"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Type}" Value="Payment">
+                                            <Setter Property="Foreground" Value="Green"/>
+                                            <Setter Property="FontWeight" Value="Bold"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGridTextColumn.CellStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Truck" Binding="{Binding TruckName}" Width="80"/>
+                        <DataGridTextColumn Header="Driver" Binding="{Binding DriverName}" Width="100"/>
+                        <DataGridTextColumn Header="Notes" Binding="{Binding Notes}" Width="150"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Page>

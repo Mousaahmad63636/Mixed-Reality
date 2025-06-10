@@ -1,0 +1,34 @@
+﻿<Window x:Class="PoultryPOS.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Poultry POS System" Height="600" Width="1000"
+        WindowState="Maximized">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="60"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="#2C3E50" Padding="10">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button Name="btnSales" Content="SALES" Width="120" Height="40" Margin="5" 
+                        Background="#3498DB" Foreground="White" BorderBrush="Transparent" 
+                        FontWeight="Bold" Click="BtnSales_Click"/>
+                <Button Name="btnCustomers" Content="CUSTOMERS" Width="120" Height="40" Margin="5" 
+                        Background="#27AE60" Foreground="White" BorderBrush="Transparent" 
+                        FontWeight="Bold" Click="BtnCustomers_Click"/>
+                <Button Name="btnTruckDriver" Content="TRUCKS &amp; DRIVERS" Width="140" Height="40" Margin="5" 
+                        Background="#E67E22" Foreground="White" BorderBrush="Transparent" 
+                        FontWeight="Bold" Click="BtnTruckDriver_Click"/>
+                <Button Name="btnPayments" Content="PAYMENTS" Width="120" Height="40" Margin="5" 
+                        Background="#9B59B6" Foreground="White" BorderBrush="Transparent" 
+                        FontWeight="Bold" Click="BtnPayments_Click"/>
+                <Button Name="btnHistory" Content="HISTORY" Width="120" Height="40" Margin="5" 
+                        Background="#E74C3C" Foreground="White" BorderBrush="Transparent" 
+                        FontWeight="Bold" Click="BtnHistory_Click"/>
+            </StackPanel>
+        </Border>
+
+        <Frame Name="MainFrame" Grid.Row="1" NavigationUIVisibility="Hidden"/>
+    </Grid>
+</Window>

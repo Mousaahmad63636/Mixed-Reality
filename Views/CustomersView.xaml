@@ -1,0 +1,147 @@
+﻿<Page x:Class="PoultryPOS.Views.CustomersView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:converters="clr-namespace:PoultryPOS.Converters"
+      Title="Customer Management">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="White" BorderBrush="#DDD" BorderThickness="1" Padding="20" Margin="0,0,0,20">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="CUSTOMER MANAGEMENT" FontSize="20" FontWeight="Bold" Margin="0,0,0,20" HorizontalAlignment="Center"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Customer Name:" FontWeight="Bold" Margin="0,0,0,5"/>
+                            <TextBox Name="txtCustomerName" Height="30" Margin="0,0,0,15"/>
+
+                            <TextBlock Text="Phone (Optional):" FontWeight="Bold" Margin="0,0,0,5"/>
+                            <TextBox Name="txtCustomerPhone" Height="30"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Initial Balance:" FontWeight="Bold" Margin="0,0,0,5"/>
+                            <TextBox Name="txtInitialBalance" Height="30" Text="0" Margin="0,0,0,15"/>
+
+                            <StackPanel Orientation="Horizontal">
+                                <Button Name="btnAddCustomer" Content="ADD" Width="60" Height="30" Background="#27AE60" 
+                                        Foreground="White" FontWeight="Bold" Margin="0,0,5,0" Click="BtnAddCustomer_Click"/>
+                                <Button Name="btnUpdateCustomer" Content="UPDATE" Width="70" Height="30" Background="#3498DB" 
+                                        Foreground="White" FontWeight="Bold" Margin="0,0,5,0" Click="BtnUpdateCustomer_Click"/>
+                                <Button Name="btnDeleteCustomer" Content="DELETE" Width="70" Height="30" Background="#E74C3C" 
+                                        Foreground="White" FontWeight="Bold" Margin="0,0,5,0" Click="BtnDeleteCustomer_Click"/>
+                                <Button Name="btnClearCustomer" Content="CLEAR" Width="60" Height="30" Background="#95A5A6" 
+                                        Foreground="White" FontWeight="Bold" Click="BtnClearCustomer_Click"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="RECEIVE PAYMENT" FontSize="16" FontWeight="Bold" Margin="0,0,0,15" HorizontalAlignment="Center"/>
+
+                    <TextBlock Text="Select Customer:" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <ComboBox Name="cmbPaymentCustomer" Height="30" Margin="0,0,0,10" SelectionChanged="CmbPaymentCustomer_SelectionChanged"/>
+
+                    <TextBlock Name="lblCustomerBalance" Text="" FontWeight="Bold" Foreground="Red" Margin="0,0,0,10"/>
+
+                    <TextBlock Text="Payment Amount:" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <TextBox Name="txtPaymentAmount" Height="30" Margin="0,0,0,10"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="4">
+                    <TextBlock Text=" " FontSize="16" Margin="0,0,0,15"/>
+
+                    <TextBlock Text="Payment Notes:" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <TextBox Name="txtPaymentNotes" Height="60" TextWrapping="Wrap" AcceptsReturn="True" Margin="0,0,0,10"/>
+
+                    <Button Name="btnReceivePayment" Content="RECEIVE PAYMENT" Height="35" Background="#9B59B6" 
+                            Foreground="White" FontWeight="Bold" Click="BtnReceivePayment_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="1" Background="White" BorderBrush="#DDD" BorderThickness="1" Padding="20">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="CUSTOMERS LIST" FontSize="18" FontWeight="Bold" Margin="0,0,0,15" HorizontalAlignment="Center"/>
+
+                    <DataGrid Name="dgCustomers" Height="400" AutoGenerateColumns="False" 
+                              HeadersVisibility="Column" GridLinesVisibility="Horizontal" 
+                              AlternatingRowBackground="#F8F9FA" SelectionChanged="DgCustomers_SelectionChanged">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
+                            <DataGridTextColumn Header="Phone" Binding="{Binding Phone}" Width="120"/>
+                            <DataGridTextColumn Header="Balance" Binding="{Binding Balance, StringFormat=C}" Width="100">
+                                <DataGridTextColumn.CellStyle>
+                                    <Style TargetType="DataGridCell">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Balance, Converter={x:Static converters:PositiveConverter.Instance}}" Value="True">
+                                                <Setter Property="Foreground" Value="Red"/>
+                                                <Setter Property="FontWeight" Value="Bold"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </DataGridTextColumn.CellStyle>
+                            </DataGridTextColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="BALANCE SUMMARY" FontSize="16" FontWeight="Bold" Margin="0,0,0,15" HorizontalAlignment="Center"/>
+
+                    <Border Background="#ECF0F1" Padding="15" Margin="0,0,0,15">
+                        <StackPanel>
+                            <TextBlock Name="lblTotalCustomers" Text="Total Customers: 0" FontWeight="Bold" Margin="0,0,0,5"/>
+                            <TextBlock Name="lblCustomersWithBalance" Text="With Balance: 0" FontWeight="Bold" Margin="0,0,0,5"/>
+                            <TextBlock Name="lblTotalBalance" Text="Total Balance: $0.00" FontWeight="Bold" FontSize="14" Foreground="Red"/>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Text="CUSTOMERS WITH BALANCE" FontSize="14" FontWeight="Bold" Margin="0,0,0,10" HorizontalAlignment="Center"/>
+
+                    <DataGrid Name="dgCustomersWithBalance" Height="250" AutoGenerateColumns="False" 
+                              HeadersVisibility="Column" GridLinesVisibility="Horizontal" 
+                              AlternatingRowBackground="#F8F9FA">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Customer" Binding="{Binding Name}" Width="*"/>
+                            <DataGridTextColumn Header="Balance" Binding="{Binding Balance, StringFormat=C}" Width="80">
+                                <DataGridTextColumn.CellStyle>
+                                    <Style TargetType="DataGridCell">
+                                        <Setter Property="Foreground" Value="Red"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                    </Style>
+                                </DataGridTextColumn.CellStyle>
+                            </DataGridTextColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Page>
