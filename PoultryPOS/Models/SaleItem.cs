@@ -14,9 +14,12 @@ namespace PoultryPOS.Models
             get => _grossWeight;
             set
             {
-                _grossWeight = value;
-                OnPropertyChanged(nameof(GrossWeight));
-                CalculateValues();
+                if (_grossWeight != value)
+                {
+                    _grossWeight = value;
+                    OnPropertyChanged(nameof(GrossWeight));
+                    CalculateValues();
+                }
             }
         }
 
@@ -25,9 +28,12 @@ namespace PoultryPOS.Models
             get => _numberOfCages;
             set
             {
-                _numberOfCages = value;
-                OnPropertyChanged(nameof(NumberOfCages));
-                CalculateValues();
+                if (_numberOfCages != value)
+                {
+                    _numberOfCages = value;
+                    OnPropertyChanged(nameof(NumberOfCages));
+                    CalculateValues();
+                }
             }
         }
 
@@ -36,9 +42,12 @@ namespace PoultryPOS.Models
             get => _singleCageWeight;
             set
             {
-                _singleCageWeight = value;
-                OnPropertyChanged(nameof(SingleCageWeight));
-                CalculateValues();
+                if (_singleCageWeight != value)
+                {
+                    _singleCageWeight = value;
+                    OnPropertyChanged(nameof(SingleCageWeight));
+                    CalculateValues();
+                }
             }
         }
 
@@ -47,9 +56,12 @@ namespace PoultryPOS.Models
             get => _invoicePricePerKg;
             set
             {
-                _invoicePricePerKg = value;
-                OnPropertyChanged(nameof(InvoicePricePerKg));
-                CalculateValues();
+                if (_invoicePricePerKg != value)
+                {
+                    _invoicePricePerKg = value;
+                    OnPropertyChanged(nameof(InvoicePricePerKg));
+                    CalculateValues();
+                }
             }
         }
 
@@ -62,8 +74,8 @@ namespace PoultryPOS.Models
         private void CalculateValues()
         {
             var totalCageWeight = TotalCageWeight;
-            NetWeight = GrossWeight - totalCageWeight;
-            TotalAmount = NetWeight * InvoicePricePerKg;
+            NetWeight = Math.Max(0, GrossWeight - totalCageWeight);
+            TotalAmount = Math.Max(0, NetWeight * InvoicePricePerKg);
 
             OnPropertyChanged(nameof(TotalCageWeight));
             OnPropertyChanged(nameof(NetWeight));
