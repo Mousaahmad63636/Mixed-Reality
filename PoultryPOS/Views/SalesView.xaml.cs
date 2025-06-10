@@ -1,5 +1,6 @@
 ﻿using PoultryPOS.Models;
 using PoultryPOS.Services;
+using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -11,6 +12,7 @@ namespace PoultryPOS.Views
         private readonly DriverService _driverService;
         private readonly CustomerService _customerService;
         private readonly SaleService _saleService;
+        private ObservableCollection<SaleItem> _saleItems;
 
         public SalesView()
         {
@@ -19,13 +21,19 @@ namespace PoultryPOS.Views
             _driverService = new DriverService();
             _customerService = new CustomerService();
             _saleService = new SaleService();
+            _saleItems = new ObservableCollection<SaleItem>();
 
             LoadData();
-            LoadTodaySales();
+            SetupDataGrid();
+            _saleItems.CollectionChanged += SaleItems_CollectionChanged;
         }
 
         private void LoadData()
         {
+            cmbCustomer.ItemsSource = _customerService.GetAll();
+            cmbCustomer.DisplayMemberPath = "Name";
+            cmbCustomer.SelectedValuePath = "Id";
+
             cmbTruck.ItemsSource = _truckService.GetAll();
             cmbTruck.DisplayMemberPath = "Name";
             cmbTruck.SelectedValuePath = "Id";
@@ -33,20 +41,51 @@ namespace PoultryPOS.Views
             cmbDriver.ItemsSource = _driverService.GetAll();
             cmbDriver.DisplayMemberPath = "Name";
             cmbDriver.SelectedValuePath = "Id";
-
-            cmbCustomer.ItemsSource = _customerService.GetAll();
-            cmbCustomer.DisplayMemberPath = "Name";
-            cmbCustomer.SelectedValuePath = "Id";
         }
 
-        private void LoadTodaySales()
+        private void SetupDataGrid()
         {
-            var todaySales = _saleService.GetByDateRange(DateTime.Today, DateTime.Today);
-            dgTodaySales.ItemsSource = todaySales;
+            dgSaleItems.ItemsSource = _saleItems;
+        }
 
-            var todayTotal = todaySales.Sum(s => s.TotalAmount);
-            lblTodayTotal.Text = $"Today's Total: {todayTotal:C}";
-            lblTodayCount.Text = $"Transactions: {todaySales.Count}";
+        private void SaleItems_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            if (e.NewItems != null)
+            {
+                foreach (SaleItem item in e.NewItems)
+                {
+                    item.PropertyChanged += SaleItem_PropertyChanged;
+                    if (decimal.TryParse(txtPricePerKg.Text, out decimal price))
+                    {
+                        item.UpdatePrice(price);
+                    }
+                }
+            }
+
+            if (e.OldItems != null)
+            {
+                foreach (SaleItem item in e.OldItems)
+                {
+                    item.PropertyChanged -= SaleItem_PropertyChanged;
+                }
+            }
+
+            UpdateTotals();
+        }
+
+        private void SaleItem_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(SaleItem.TotalAmount))
+            {
+                UpdateTotals();
+            }
+        }
+
+        private void UpdateTotals()
+        {
+            var totalAmount = _saleItems.Sum(item => item.TotalAmount);
+            var lineCount = _saleItems.Count;
+            lblInvoiceTotal.Text = $"Invoice Total: {totalAmount:C} | Line Items: {lineCount}";
         }
 
         private void CmbCustomer_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -55,43 +94,105 @@ namespace PoultryPOS.Views
             {
                 var customerId = (int)cmbCustomer.SelectedValue;
                 var customer = _customerService.GetById(customerId);
-                if (customer != null)
+                if (customer != null && customer.Balance > 0)
                 {
-                    if (customer.Balance > 0)
-                    {
-                        lblCurrentBalance.Text = $"Current Balance: {customer.Balance:C}";
-                    }
-                    else
-                    {
-                        lblCurrentBalance.Text = "";
-                    }
+                    lblCurrentBalance.Text = $"Current Balance: {customer.Balance:C}";
+                }
+                else
+                {
+                    lblCurrentBalance.Text = "";
                 }
             }
         }
 
-        private void CalculateWeights(object sender, TextChangedEventArgs e)
+        private void TxtPricePerKg_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (decimal.TryParse(txtGrossWeight.Text, out decimal grossWeight) &&
-                decimal.TryParse(txtCageWeight.Text, out decimal cageWeight))
+            if (decimal.TryParse(txtPricePerKg.Text, out decimal price))
             {
-                var netWeight = grossWeight - cageWeight;
-                txtNetWeight.Text = netWeight.ToString("F2");
-                CalculateTotal(null, null);
+                foreach (var item in _saleItems)
+                {
+                    item.UpdatePrice(price);
+                }
             }
         }
 
-        private void CalculateTotal(object sender, TextChangedEventArgs e)
+        private void DgSaleItems_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
         {
-            if (decimal.TryParse(txtNetWeight.Text, out decimal netWeight) &&
-                decimal.TryParse(txtPricePerKg.Text, out decimal pricePerKg))
+            Dispatcher.BeginInvoke(new Action(() =>
             {
-                var totalAmount = netWeight * pricePerKg;
-                txtTotalAmount.Text = totalAmount.ToString("F2");
+                if (e.Row.Item is SaleItem item)
+                {
+                    if (decimal.TryParse(txtPricePerKg.Text, out decimal price))
+                    {
+                        item.UpdatePrice(price);
+                    }
+                }
+            }), System.Windows.Threading.DispatcherPriority.Background);
+        }
+
+        private void BtnAddRow_Click(object sender, RoutedEventArgs e)
+        {
+            var newItem = new SaleItem();
+            if (decimal.TryParse(txtPricePerKg.Text, out decimal price))
+            {
+                newItem.UpdatePrice(price);
+            }
+            _saleItems.Add(newItem);
+        }
+
+        private void BtnRemoveRow_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.DataContext is SaleItem saleItem)
+            {
+                _saleItems.Remove(saleItem);
             }
         }
 
-        private bool ValidateForm()
+        private void BtnPayNow_Click(object sender, RoutedEventArgs e)
         {
+            if (!ValidateInvoice()) return;
+
+            try
+            {
+                ProcessInvoice(true);
+                MessageBox.Show("Invoice processed successfully - Paid Now!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                ClearAll();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error processing invoice: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void BtnAddToAccount_Click(object sender, RoutedEventArgs e)
+        {
+            if (!ValidateInvoice()) return;
+
+            try
+            {
+                ProcessInvoice(false);
+                MessageBox.Show("Invoice added to customer account!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                ClearAll();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error processing invoice: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void BtnClearAll_Click(object sender, RoutedEventArgs e)
+        {
+            ClearAll();
+        }
+
+        private bool ValidateInvoice()
+        {
+            if (cmbCustomer.SelectedValue == null)
+            {
+                MessageBox.Show("Please select a customer.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+
             if (cmbTruck.SelectedValue == null)
             {
                 MessageBox.Show("Please select a truck.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -104,159 +205,134 @@ namespace PoultryPOS.Views
                 return false;
             }
 
-            if (cmbCustomer.SelectedValue == null)
-            {
-                MessageBox.Show("Please select a customer.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return false;
-            }
-
-            if (!decimal.TryParse(txtGrossWeight.Text, out _) || decimal.Parse(txtGrossWeight.Text) <= 0)
-            {
-                MessageBox.Show("Please enter a valid gross weight.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return false;
-            }
-
-            if (!int.TryParse(txtNumberOfCages.Text, out _) || int.Parse(txtNumberOfCages.Text) <= 0)
-            {
-                MessageBox.Show("Please enter a valid number of cages.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return false;
-            }
-
-            if (!decimal.TryParse(txtCageWeight.Text, out _) || decimal.Parse(txtCageWeight.Text) < 0)
-            {
-                MessageBox.Show("Please enter a valid cage weight.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return false;
-            }
-
-            if (!decimal.TryParse(txtPricePerKg.Text, out _) || decimal.Parse(txtPricePerKg.Text) <= 0)
+            if (!decimal.TryParse(txtPricePerKg.Text, out decimal price) || price <= 0)
             {
                 MessageBox.Show("Please enter a valid price per kg.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return false;
             }
 
-            if (decimal.Parse(txtNetWeight.Text) <= 0)
+            if (_saleItems.Count == 0)
             {
-                MessageBox.Show("Net weight must be greater than zero.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Please add at least one sale item.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return false;
+            }
+
+            foreach (var item in _saleItems)
+            {
+                if (item.GrossWeight <= 0)
+                {
+                    MessageBox.Show("Please enter valid gross weight for all items.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return false;
+                }
+
+                if (item.NumberOfCages <= 0)
+                {
+                    MessageBox.Show("Please enter valid number of cages for all items.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return false;
+                }
+
+                if (item.SingleCageWeight <= 0)
+                {
+                    MessageBox.Show("Please enter valid single cage weight for all items.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return false;
+                }
+
+                if (item.NetWeight <= 0)
+                {
+                    MessageBox.Show("Net weight must be greater than zero for all items.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return false;
+                }
             }
 
             return true;
         }
 
-        private Sale CreateSaleFromForm(bool isPaidNow)
+        private void ProcessInvoice(bool isPaidNow)
         {
-            return new Sale
-            {
-                CustomerId = (int)cmbCustomer.SelectedValue,
-                TruckId = (int)cmbTruck.SelectedValue,
-                DriverId = (int)cmbDriver.SelectedValue,
-                GrossWeight = decimal.Parse(txtGrossWeight.Text),
-                NumberOfCages = int.Parse(txtNumberOfCages.Text),
-                CageWeight = decimal.Parse(txtCageWeight.Text),
-                NetWeight = decimal.Parse(txtNetWeight.Text),
-                PricePerKg = decimal.Parse(txtPricePerKg.Text),
-                TotalAmount = decimal.Parse(txtTotalAmount.Text),
-                IsPaidNow = isPaidNow,
-                SaleDate = DateTime.Now
-            };
-        }
+            var customerId = (int)cmbCustomer.SelectedValue;
+            var truckId = (int)cmbTruck.SelectedValue;
+            var driverId = (int)cmbDriver.SelectedValue;
+            var pricePerKg = decimal.Parse(txtPricePerKg.Text);
+            var invoiceTotal = _saleItems.Sum(item => item.TotalAmount);
 
-        private void BtnPayNow_Click(object sender, RoutedEventArgs e)
-        {
-            if (!ValidateForm()) return;
-
-            try
+            foreach (var item in _saleItems)
             {
-                var sale = CreateSaleFromForm(true);
+                var sale = new Sale
+                {
+                    CustomerId = customerId,
+                    TruckId = truckId,
+                    DriverId = driverId,
+                    GrossWeight = item.GrossWeight,
+                    NumberOfCages = item.NumberOfCages,
+                    CageWeight = item.TotalCageWeight,
+                    NetWeight = item.NetWeight,
+                    PricePerKg = pricePerKg,
+                    TotalAmount = item.TotalAmount,
+                    IsPaidNow = isPaidNow,
+                    SaleDate = DateTime.Now
+                };
+
                 _saleService.Add(sale);
-
-                MessageBox.Show("Sale completed successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                PrintReceipt(sale, false);
-                ClearForm();
-                LoadTodaySales();
             }
-            catch (Exception ex)
+
+            if (!isPaidNow)
             {
-                MessageBox.Show($"Error processing sale: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private void BtnAddToAccount_Click(object sender, RoutedEventArgs e)
-        {
-            if (!ValidateForm()) return;
-
-            try
-            {
-                var sale = CreateSaleFromForm(false);
-                _saleService.Add(sale);
-
-                var customerId = (int)cmbCustomer.SelectedValue;
                 var customer = _customerService.GetById(customerId);
-                var newBalance = customer.Balance + sale.TotalAmount;
+                var newBalance = customer.Balance + invoiceTotal;
                 _customerService.UpdateBalance(customerId, newBalance);
+            }
 
-                MessageBox.Show("Sale added to customer account!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                PrintReceipt(sale, true);
-                ClearForm();
-                LoadTodaySales();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error processing sale: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            PrintInvoiceReceipt(isPaidNow, invoiceTotal, pricePerKg);
         }
 
-        private void PrintReceipt(Sale sale, bool addedToAccount)
+        private void PrintInvoiceReceipt(bool isPaidNow, decimal invoiceTotal, decimal pricePerKg)
         {
-            var customer = _customerService.GetById(sale.CustomerId);
-            var truck = _truckService.GetAll().First(t => t.Id == sale.TruckId);
-            var driver = _driverService.GetAll().First(d => d.Id == sale.DriverId);
+            var customer = _customerService.GetById((int)cmbCustomer.SelectedValue);
+            var truck = _truckService.GetAll().First(t => t.Id == (int)cmbTruck.SelectedValue);
+            var driver = _driverService.GetAll().First(d => d.Id == (int)cmbDriver.SelectedValue);
 
             var receipt = $@"
 =====================================
-         POULTRY SALES RECEIPT
+         POULTRY SALES INVOICE
 =====================================
-Date: {sale.SaleDate:yyyy-MM-dd HH:mm}
-Receipt #: {sale.Id}
+Date: {DateTime.Now:yyyy-MM-dd HH:mm}
+Invoice #: INV{DateTime.Now:yyyyMMdd}-{DateTime.Now:HHmmss}
 
 Customer: {customer.Name}
 Truck: {truck.Name}
 Driver: {driver.Name}
+Price per KG: {pricePerKg:C}
+Line Items: {_saleItems.Count}
 
--------------------------------------
-Gross Weight:     {sale.GrossWeight:F2} KG
-Cages:            {sale.NumberOfCages}
-Cage Weight:      {sale.CageWeight:F2} KG
-Net Weight:       {sale.NetWeight:F2} KG
-Price per KG:     {sale.PricePerKg:C}
--------------------------------------
-TOTAL AMOUNT:     {sale.TotalAmount:C}
+-------------------------------------";
 
-Payment: {(addedToAccount ? "Added to Account" : "Paid Now")}
-{(addedToAccount ? $"New Balance: {customer.Balance + sale.TotalAmount:C}" : "")}
+            foreach (var item in _saleItems)
+            {
+                receipt += $@"
+Gross: {item.GrossWeight:F2}kg | Cages: {item.NumberOfCages} × {item.SingleCageWeight:F2}kg = {item.TotalCageWeight:F2}kg
+Net: {item.NetWeight:F2}kg @ {pricePerKg:C}/kg = {item.TotalAmount:C}";
+            }
+
+            receipt += $@"
+-------------------------------------
+INVOICE TOTAL:    {invoiceTotal:C}
+
+Payment: {(isPaidNow ? "Paid Now" : "Added to Account")}
+{(!isPaidNow ? $"New Balance: {customer.Balance + invoiceTotal:C}" : "")}
 
 Thank you for your business!
 =====================================";
 
-            MessageBox.Show(receipt, "Receipt", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show(receipt, "Invoice Receipt", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        private void BtnClear_Click(object sender, RoutedEventArgs e)
+        private void ClearAll()
         {
-            ClearForm();
-        }
-
-        private void ClearForm()
-        {
+            _saleItems.Clear();
+            cmbCustomer.SelectedIndex = -1;
             cmbTruck.SelectedIndex = -1;
             cmbDriver.SelectedIndex = -1;
-            cmbCustomer.SelectedIndex = -1;
-            txtGrossWeight.Clear();
-            txtNumberOfCages.Clear();
-            txtCageWeight.Clear();
-            txtNetWeight.Clear();
             txtPricePerKg.Clear();
-            txtTotalAmount.Clear();
             lblCurrentBalance.Text = "";
         }
     }
