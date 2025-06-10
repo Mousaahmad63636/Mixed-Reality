@@ -63,6 +63,40 @@ namespace PoultryPOS.Services
 
             command.ExecuteNonQuery();
         }
+        public void UpdateCurrentLoad(int truckId, int cagesUsed)
+        {
+            using var connection = _dbService.GetConnection();
+            connection.Open();
+
+            var command = new SqlCommand("UPDATE Trucks SET CurrentLoad = CurrentLoad - @CagesUsed WHERE Id = @Id", connection);
+            command.Parameters.AddWithValue("@Id", truckId);
+            command.Parameters.AddWithValue("@CagesUsed", cagesUsed);
+
+            command.ExecuteNonQuery();
+        }
+
+        public Truck GetById(int id)
+        {
+            using var connection = _dbService.GetConnection();
+            connection.Open();
+
+            var command = new SqlCommand("SELECT * FROM Trucks WHERE Id = @Id", connection);
+            command.Parameters.AddWithValue("@Id", id);
+
+            using var reader = command.ExecuteReader();
+            if (reader.Read())
+            {
+                return new Truck
+                {
+                    Id = reader.GetInt32("Id"),
+                    Name = reader.GetString("Name"),
+                    CurrentLoad = reader.GetInt32("CurrentLoad"),
+                    PlateNumber = reader.IsDBNull("PlateNumber") ? null : reader.GetString("PlateNumber"),
+                    IsActive = reader.GetBoolean("IsActive")
+                };
+            }
+            return null;
+        }
 
         public void Delete(int id)
         {

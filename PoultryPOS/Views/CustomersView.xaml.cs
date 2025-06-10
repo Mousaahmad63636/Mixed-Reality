@@ -2,6 +2,9 @@
 using PoultryPOS.Services;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Media;
+using System.Printing;
 
 namespace PoultryPOS.Views
 {
@@ -9,6 +12,7 @@ namespace PoultryPOS.Views
     {
         private readonly CustomerService _customerService;
         private readonly PaymentService _paymentService;
+        private readonly SaleService _saleService;
         private Customer _selectedCustomer;
 
         public CustomersView()
@@ -16,6 +20,7 @@ namespace PoultryPOS.Views
             InitializeComponent();
             _customerService = new CustomerService();
             _paymentService = new PaymentService();
+            _saleService = new SaleService();
             LoadData();
             UpdateSummary();
         }
@@ -180,6 +185,315 @@ namespace PoultryPOS.Views
             }
         }
 
+        private void BtnPrintStatement_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedCustomer == null)
+            {
+                MessageBox.Show("Please select a customer to print statement.", "Selection Required",
+                                MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            PrintCustomerStatement(_selectedCustomer);
+        }
+
+        private async void PrintCustomerStatement(Customer customer)
+        {
+            try
+            {
+                var printDialog = new PrintDialog();
+                if (printDialog.ShowDialog() != true)
+                    return;
+
+                var statementId = DateTime.Now.ToString("yyMMddHHmm");
+
+                var flowDocument = CreateCustomerStatementDocument(
+                    printDialog,
+                    statementId,
+                    customer);
+
+                printDialog.PrintDocument(
+                    ((IDocumentPaginatorSource)flowDocument).DocumentPaginator,
+                    "Customer Account Statement");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error printing statement: {ex.Message}", "Print Error",
+                                MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private FlowDocument CreateCustomerStatementDocument(
+            PrintDialog printDialog,
+            string statementId,
+            Customer customer)
+        {
+            var flowDocument = new FlowDocument
+            {
+                PageWidth = printDialog.PrintableAreaWidth,
+                ColumnWidth = printDialog.PrintableAreaWidth,
+                FontFamily = new FontFamily("Segoe UI, Arial"),
+                FontWeight = FontWeights.Normal,
+                PagePadding = new Thickness(15, 10, 15, 10),
+                TextAlignment = TextAlignment.Center,
+                PageHeight = printDialog.PrintableAreaHeight
+            };
+
+            var header = new Paragraph
+            {
+                TextAlignment = TextAlignment.Center,
+                Margin = new Thickness(0, 5, 0, 10),
+                BorderBrush = Brushes.Black,
+                BorderThickness = new Thickness(2),
+                Padding = new Thickness(10),
+                Background = Brushes.LightBlue
+            };
+
+            header.Inlines.Add(new Run("كشف حساب العميل")
+            {
+                FontSize = 22,
+                FontWeight = FontWeights.Bold,
+                Foreground = Brushes.DarkBlue
+            });
+            header.Inlines.Add(new LineBreak());
+            header.Inlines.Add(new Run("CUSTOMER ACCOUNT STATEMENT")
+            {
+                FontSize = 18,
+                FontWeight = FontWeights.Bold,
+                Foreground = Brushes.DarkBlue
+            });
+
+            flowDocument.Blocks.Add(header);
+
+            var customerParagraph = new Paragraph
+            {
+                TextAlignment = TextAlignment.Center,
+                Margin = new Thickness(0, 10, 0, 10),
+                BorderBrush = Brushes.Gray,
+                BorderThickness = new Thickness(1),
+                Padding = new Thickness(8),
+                Background = Brushes.LightYellow
+            };
+
+            customerParagraph.Inlines.Add(new Run("العميل:")
+            {
+                FontSize = 16,
+                FontWeight = FontWeights.Bold
+            });
+            customerParagraph.Inlines.Add(new Run(" "));
+            customerParagraph.Inlines.Add(new Run(customer.Name)
+            {
+                FontSize = 16,
+                FontWeight = FontWeights.Bold,
+                Foreground = Brushes.DarkGreen
+            });
+
+            if (!string.IsNullOrEmpty(customer.Phone))
+            {
+                customerParagraph.Inlines.Add(new Run("  |  "));
+                customerParagraph.Inlines.Add(new Run($"هاتف: {customer.Phone}")
+                {
+                    FontSize = 14,
+                    FontWeight = FontWeights.Normal
+                });
+            }
+
+            flowDocument.Blocks.Add(customerParagraph);
+
+            var metaInfoParagraph = new Paragraph
+            {
+                TextAlignment = TextAlignment.Center,
+                Margin = new Thickness(0, 10, 0, 10),
+                BorderBrush = Brushes.Gray,
+                BorderThickness = new Thickness(1),
+                Padding = new Thickness(8),
+                Background = Brushes.AliceBlue,
+                FontSize = 12
+            };
+
+            metaInfoParagraph.Inlines.Add(new Run($"رقم الكشف: {statementId}")
+            {
+                FontWeight = FontWeights.Bold
+            });
+            metaInfoParagraph.Inlines.Add(new Run("  |  "));
+            metaInfoParagraph.Inlines.Add(new Run($"تاريخ الطباعة: {DateTime.Now:yyyy/MM/dd hh:mm tt}")
+            {
+                FontWeight = FontWeights.Bold
+            });
+
+            flowDocument.Blocks.Add(metaInfoParagraph);
+            flowDocument.Blocks.Add(new Paragraph { Margin = new Thickness(0, 10, 0, 10) });
+
+            var sales = _saleService.GetAll().Where(s => s.CustomerId == customer.Id).ToList();
+            var payments = _paymentService.GetByCustomer(customer.Id);
+
+            var allTransactions = new List<CustomerTransaction>();
+
+            foreach (var sale in sales)
+            {
+                allTransactions.Add(new CustomerTransaction
+                {
+                    Date = sale.SaleDate,
+                    Type = "Sale",
+                    Description = $"مبيعات - وزن صافي: {sale.NetWeight:F2} كغ",
+                    Debit = sale.TotalAmount,
+                    Credit = 0,
+                    Reference = $"INV-{sale.Id}"
+                });
+            }
+
+            foreach (var payment in payments)
+            {
+                allTransactions.Add(new CustomerTransaction
+                {
+                    Date = payment.PaymentDate,
+                    Type = "Payment",
+                    Description = $"دفعة{(!string.IsNullOrEmpty(payment.Notes) ? $" - {payment.Notes}" : "")}",
+                    Debit = 0,
+                    Credit = payment.Amount,
+                    Reference = $"PAY-{payment.Id}"
+                });
+            }
+
+            allTransactions = allTransactions.OrderBy(t => t.Date).ToList();
+
+            if (allTransactions.Any())
+            {
+                var transactionsTable = new Table
+                {
+                    FontSize = 9,
+                    CellSpacing = 0,
+                    BorderBrush = Brushes.Black,
+                    BorderThickness = new Thickness(1)
+                };
+
+                transactionsTable.Columns.Add(new TableColumn { Width = new GridLength(60) });
+                transactionsTable.Columns.Add(new TableColumn { Width = new GridLength(50) });
+                transactionsTable.Columns.Add(new TableColumn { Width = new GridLength(2, GridUnitType.Star) });
+                transactionsTable.Columns.Add(new TableColumn { Width = new GridLength(60) });
+                transactionsTable.Columns.Add(new TableColumn { Width = new GridLength(60) });
+                transactionsTable.Columns.Add(new TableColumn { Width = new GridLength(60) });
+                transactionsTable.RowGroups.Add(new TableRowGroup());
+
+                var headerRow = new TableRow();
+                headerRow.Cells.Add(CreateCellWithBorder("التاريخ", FontWeights.Bold, TextAlignment.Center, Brushes.White, Brushes.DarkBlue));
+                headerRow.Cells.Add(CreateCellWithBorder("المرجع", FontWeights.Bold, TextAlignment.Center, Brushes.White, Brushes.DarkBlue));
+                headerRow.Cells.Add(CreateCellWithBorder("الوصف", FontWeights.Bold, TextAlignment.Center, Brushes.White, Brushes.DarkBlue));
+                headerRow.Cells.Add(CreateCellWithBorder("مدين", FontWeights.Bold, TextAlignment.Center, Brushes.White, Brushes.DarkBlue));
+                headerRow.Cells.Add(CreateCellWithBorder("دائن", FontWeights.Bold, TextAlignment.Center, Brushes.White, Brushes.DarkBlue));
+                headerRow.Cells.Add(CreateCellWithBorder("الرصيد", FontWeights.Bold, TextAlignment.Center, Brushes.White, Brushes.DarkBlue));
+                transactionsTable.RowGroups[0].Rows.Add(headerRow);
+
+                decimal runningBalance = 0;
+
+                foreach (var transaction in allTransactions)
+                {
+                    runningBalance += transaction.Debit - transaction.Credit;
+
+                    var row = new TableRow();
+                    row.Cells.Add(CreateCellWithBorder(transaction.Date.ToString("MM/dd"), FontWeights.Normal, TextAlignment.Center));
+                    row.Cells.Add(CreateCellWithBorder(transaction.Reference, FontWeights.Normal, TextAlignment.Center));
+                    row.Cells.Add(CreateCellWithBorder(transaction.Description, FontWeights.Normal, TextAlignment.Right));
+
+                    var debitColor = transaction.Debit > 0 ? Brushes.DarkRed : Brushes.Black;
+                    var creditColor = transaction.Credit > 0 ? Brushes.DarkGreen : Brushes.Black;
+
+                    row.Cells.Add(CreateCellWithBorder(transaction.Debit > 0 ? $"{transaction.Debit:C}" : "-",
+                                                     FontWeights.Normal, TextAlignment.Center, debitColor));
+                    row.Cells.Add(CreateCellWithBorder(transaction.Credit > 0 ? $"{transaction.Credit:C}" : "-",
+                                                     FontWeights.Normal, TextAlignment.Center, creditColor));
+                    row.Cells.Add(CreateCellWithBorder($"{runningBalance:C}", FontWeights.Bold, TextAlignment.Center,
+                                                     runningBalance >= 0 ? Brushes.DarkRed : Brushes.DarkGreen));
+
+                    transactionsTable.RowGroups[0].Rows.Add(row);
+                }
+
+                flowDocument.Blocks.Add(transactionsTable);
+            }
+            else
+            {
+                var noDataParagraph = new Paragraph
+                {
+                    TextAlignment = TextAlignment.Center,
+                    Margin = new Thickness(0, 20, 0, 20),
+                    FontSize = 16,
+                    FontStyle = FontStyles.Italic,
+                    Foreground = Brushes.Gray
+                };
+                noDataParagraph.Inlines.Add(new Run("لا توجد معاملات لهذا العميل"));
+                noDataParagraph.Inlines.Add(new LineBreak());
+                noDataParagraph.Inlines.Add(new Run("No transactions found for this customer"));
+                flowDocument.Blocks.Add(noDataParagraph);
+            }
+
+            flowDocument.Blocks.Add(new Paragraph { Margin = new Thickness(0, 15, 0, 10) });
+
+            var summaryTable = new Table
+            {
+                FontSize = 13,
+                CellSpacing = 0,
+                BorderBrush = Brushes.Black,
+                BorderThickness = new Thickness(2)
+            };
+            summaryTable.Columns.Add(new TableColumn { Width = new GridLength(2, GridUnitType.Star) });
+            summaryTable.Columns.Add(new TableColumn { Width = new GridLength(2, GridUnitType.Star) });
+            summaryTable.RowGroups.Add(new TableRowGroup());
+
+            var summaryHeaderRow = new TableRow();
+            summaryHeaderRow.Cells.Add(CreateCellWithBorder("ملخص الحساب", FontWeights.Bold, TextAlignment.Center, Brushes.White, Brushes.DarkGreen, 2));
+            summaryTable.RowGroups[0].Rows.Add(summaryHeaderRow);
+
+            var totalSales = sales.Sum(s => s.TotalAmount);
+            var totalPayments = payments.Sum(p => p.Amount);
+            var currentBalance = customer.Balance;
+
+            var salesRow = new TableRow();
+            salesRow.Cells.Add(CreateCellWithBorder("إجمالي المبيعات", FontWeights.Normal, TextAlignment.Right));
+            salesRow.Cells.Add(CreateCellWithBorder($"{totalSales:C}", FontWeights.Normal, TextAlignment.Center, Brushes.DarkRed));
+            summaryTable.RowGroups[0].Rows.Add(salesRow);
+
+            var paymentsRow = new TableRow();
+            paymentsRow.Cells.Add(CreateCellWithBorder("إجمالي المدفوعات", FontWeights.Normal, TextAlignment.Right));
+            paymentsRow.Cells.Add(CreateCellWithBorder($"{totalPayments:C}", FontWeights.Normal, TextAlignment.Center, Brushes.DarkGreen));
+            summaryTable.RowGroups[0].Rows.Add(paymentsRow);
+
+            var balanceRow = new TableRow { Background = Brushes.LightYellow };
+            balanceRow.Cells.Add(CreateCellWithBorder("الرصيد الحالي", FontWeights.Bold, TextAlignment.Right));
+            balanceRow.Cells.Add(CreateCellWithBorder($"{currentBalance:C}", FontWeights.Bold, TextAlignment.Center,
+                                                    currentBalance >= 0 ? Brushes.DarkRed : Brushes.DarkGreen));
+            summaryTable.RowGroups[0].Rows.Add(balanceRow);
+
+            flowDocument.Blocks.Add(summaryTable);
+
+            var footer = new Paragraph
+            {
+                TextAlignment = TextAlignment.Center,
+                Margin = new Thickness(0, 20, 0, 5),
+                BorderBrush = Brushes.DarkBlue,
+                BorderThickness = new Thickness(2),
+                Padding = new Thickness(10),
+                Background = Brushes.LightCyan
+            };
+
+            footer.Inlines.Add(new Run("كشف حساب معتمد")
+            {
+                FontSize = 16,
+                FontWeight = FontWeights.Bold,
+                Foreground = Brushes.DarkBlue
+            });
+            footer.Inlines.Add(new LineBreak());
+            footer.Inlines.Add(new Run("Official Account Statement")
+            {
+                FontSize = 14,
+                FontWeight = FontWeights.Normal,
+                Foreground = Brushes.DarkBlue
+            });
+
+            flowDocument.Blocks.Add(footer);
+
+            return flowDocument;
+        }
+
         private void BtnClearCustomer_Click(object sender, RoutedEventArgs e)
         {
             ClearCustomerForm();
@@ -252,26 +566,236 @@ namespace PoultryPOS.Views
             }
         }
 
-        private void PrintPaymentReceipt(Payment payment, Customer customer, decimal newBalance)
+        private async void PrintPaymentReceipt(Payment payment, Customer customer, decimal newBalance)
         {
-            var receipt = $@"
-=====================================
-        PAYMENT RECEIPT
-=====================================
-Date: {payment.PaymentDate:yyyy-MM-dd HH:mm}
-Receipt #: {payment.Id}
+            try
+            {
+                var printDialog = new PrintDialog();
+                if (printDialog.ShowDialog() != true)
+                    return;
 
-Customer: {customer.Name}
-Payment Amount: {payment.Amount:C}
-Previous Balance: {customer.Balance:C}
-New Balance: {newBalance:C}
+                var receiptId = DateTime.Now.ToString("yyMMddHHmm");
 
-{(string.IsNullOrEmpty(payment.Notes) ? "" : $"Notes: {payment.Notes}")}
+                var flowDocument = CreatePaymentReceiptDocument(
+                    printDialog,
+                    receiptId,
+                    payment,
+                    customer,
+                    newBalance);
 
-Thank you for your payment!
-=====================================";
+                printDialog.PrintDocument(
+                    ((IDocumentPaginatorSource)flowDocument).DocumentPaginator,
+                    "Payment Receipt");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error printing receipt: {ex.Message}", "Print Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
 
-            MessageBox.Show(receipt, "Payment Receipt", MessageBoxButton.OK, MessageBoxImage.Information);
+        private FlowDocument CreatePaymentReceiptDocument(
+            PrintDialog printDialog,
+            string receiptId,
+            Payment payment,
+            Customer customer,
+            decimal newBalance)
+        {
+            var flowDocument = new FlowDocument
+            {
+                PageWidth = printDialog.PrintableAreaWidth,
+                ColumnWidth = printDialog.PrintableAreaWidth,
+                FontFamily = new FontFamily("Segoe UI, Arial"),
+                FontWeight = FontWeights.Normal,
+                PagePadding = new Thickness(15, 10, 15, 10),
+                TextAlignment = TextAlignment.Center,
+                PageHeight = printDialog.PrintableAreaHeight
+            };
+
+            var header = new Paragraph
+            {
+                TextAlignment = TextAlignment.Center,
+                Margin = new Thickness(0, 5, 0, 10),
+                BorderBrush = Brushes.Black,
+                BorderThickness = new Thickness(2),
+                Padding = new Thickness(10),
+                Background = Brushes.LightGreen
+            };
+
+            header.Inlines.Add(new Run("إيصال استلام دفعة")
+            {
+                FontSize = 22,
+                FontWeight = FontWeights.Bold,
+                Foreground = Brushes.DarkGreen
+            });
+            header.Inlines.Add(new LineBreak());
+            header.Inlines.Add(new Run("PAYMENT RECEIPT")
+            {
+                FontSize = 18,
+                FontWeight = FontWeights.Bold,
+                Foreground = Brushes.DarkGreen
+            });
+
+            flowDocument.Blocks.Add(header);
+
+            var customerParagraph = new Paragraph
+            {
+                TextAlignment = TextAlignment.Center,
+                Margin = new Thickness(0, 10, 0, 10),
+                BorderBrush = Brushes.Gray,
+                BorderThickness = new Thickness(1),
+                Padding = new Thickness(8),
+                Background = Brushes.LightYellow
+            };
+
+            customerParagraph.Inlines.Add(new Run("العميل:")
+            {
+                FontSize = 16,
+                FontWeight = FontWeights.Bold
+            });
+            customerParagraph.Inlines.Add(new Run(" "));
+            customerParagraph.Inlines.Add(new Run(customer.Name)
+            {
+                FontSize = 16,
+                FontWeight = FontWeights.Bold,
+                Foreground = Brushes.DarkBlue
+            });
+
+            flowDocument.Blocks.Add(customerParagraph);
+
+            var metaInfoParagraph = new Paragraph
+            {
+                TextAlignment = TextAlignment.Center,
+                Margin = new Thickness(0, 10, 0, 10),
+                BorderBrush = Brushes.Gray,
+                BorderThickness = new Thickness(1),
+                Padding = new Thickness(8),
+                Background = Brushes.AliceBlue,
+                FontSize = 12
+            };
+
+            metaInfoParagraph.Inlines.Add(new Run($"رقم الإيصال: {receiptId}")
+            {
+                FontWeight = FontWeights.Bold
+            });
+            metaInfoParagraph.Inlines.Add(new Run("  |  "));
+            metaInfoParagraph.Inlines.Add(new Run($"التاريخ: {payment.PaymentDate:yyyy/MM/dd hh:mm tt}")
+            {
+                FontWeight = FontWeights.Bold
+            });
+
+            flowDocument.Blocks.Add(metaInfoParagraph);
+            flowDocument.Blocks.Add(new Paragraph { Margin = new Thickness(0, 10, 0, 10) });
+
+            var summaryTable = new Table
+            {
+                FontSize = 13,
+                CellSpacing = 0,
+                BorderBrush = Brushes.Black,
+                BorderThickness = new Thickness(2)
+            };
+            summaryTable.Columns.Add(new TableColumn { Width = new GridLength(2, GridUnitType.Star) });
+            summaryTable.Columns.Add(new TableColumn { Width = new GridLength(2, GridUnitType.Star) });
+            summaryTable.RowGroups.Add(new TableRowGroup());
+
+            var summaryHeaderRow = new TableRow();
+            summaryHeaderRow.Cells.Add(CreateCellWithBorder("البيان", FontWeights.Bold, TextAlignment.Center, Brushes.White, Brushes.DarkGreen));
+            summaryHeaderRow.Cells.Add(CreateCellWithBorder("القيمة", FontWeights.Bold, TextAlignment.Center, Brushes.White, Brushes.DarkGreen));
+            summaryTable.RowGroups[0].Rows.Add(summaryHeaderRow);
+
+            var previousBalanceRow = new TableRow();
+            previousBalanceRow.Cells.Add(CreateCellWithBorder("الرصيد السابق", FontWeights.Normal, TextAlignment.Right));
+            previousBalanceRow.Cells.Add(CreateCellWithBorder($"{customer.Balance:C}", FontWeights.Normal, TextAlignment.Center));
+            summaryTable.RowGroups[0].Rows.Add(previousBalanceRow);
+
+            var paymentAmountRow = new TableRow();
+            paymentAmountRow.Cells.Add(CreateCellWithBorder("مبلغ الدفعة", FontWeights.Normal, TextAlignment.Right));
+            paymentAmountRow.Cells.Add(CreateCellWithBorder($"{payment.Amount:C}", FontWeights.Normal, TextAlignment.Center, Brushes.DarkGreen));
+            summaryTable.RowGroups[0].Rows.Add(paymentAmountRow);
+
+            var newBalanceRow = new TableRow { Background = Brushes.LightYellow };
+            newBalanceRow.Cells.Add(CreateCellWithBorder("الرصيد الجديد", FontWeights.Bold, TextAlignment.Right, Brushes.DarkRed));
+            newBalanceRow.Cells.Add(CreateCellWithBorder($"{newBalance:C}", FontWeights.Bold, TextAlignment.Center, Brushes.DarkRed));
+            summaryTable.RowGroups[0].Rows.Add(newBalanceRow);
+
+            flowDocument.Blocks.Add(summaryTable);
+
+            if (!string.IsNullOrEmpty(payment.Notes))
+            {
+                var notesParagraph = new Paragraph
+                {
+                    TextAlignment = TextAlignment.Center,
+                    Margin = new Thickness(0, 15, 0, 10),
+                    BorderBrush = Brushes.Gray,
+                    BorderThickness = new Thickness(1),
+                    Padding = new Thickness(10),
+                    Background = Brushes.LightCyan
+                };
+
+                notesParagraph.Inlines.Add(new Run("ملاحظات:")
+                {
+                    FontSize = 14,
+                    FontWeight = FontWeights.Bold
+                });
+                notesParagraph.Inlines.Add(new LineBreak());
+                notesParagraph.Inlines.Add(new Run(payment.Notes)
+                {
+                    FontSize = 12,
+                    FontStyle = FontStyles.Italic
+                });
+
+                flowDocument.Blocks.Add(notesParagraph);
+            }
+
+            var footer = new Paragraph
+            {
+                TextAlignment = TextAlignment.Center,
+                Margin = new Thickness(0, 20, 0, 5),
+                BorderBrush = Brushes.DarkGreen,
+                BorderThickness = new Thickness(2),
+                Padding = new Thickness(10),
+                Background = Brushes.LightGreen
+            };
+
+            footer.Inlines.Add(new Run("شكراً لسداد دفعتكم")
+            {
+                FontSize = 16,
+                FontWeight = FontWeights.Bold,
+                Foreground = Brushes.DarkGreen
+            });
+            footer.Inlines.Add(new LineBreak());
+            footer.Inlines.Add(new Run("Thank you for your payment!")
+            {
+                FontSize = 14,
+                FontWeight = FontWeights.Normal,
+                Foreground = Brushes.DarkGreen
+            });
+
+            flowDocument.Blocks.Add(footer);
+
+            return flowDocument;
+        }
+
+        private TableCell CreateCellWithBorder(string text, FontWeight fontWeight = default, TextAlignment alignment = TextAlignment.Left, Brush foreground = null, Brush background = null, int columnSpan = 1)
+        {
+            var paragraph = new Paragraph(new Run(text ?? string.Empty))
+            {
+                FontWeight = fontWeight == default ? FontWeights.Normal : fontWeight,
+                TextAlignment = alignment,
+                Margin = new Thickness(0),
+                Padding = new Thickness(0),
+                Foreground = foreground ?? Brushes.Black
+            };
+
+            var cell = new TableCell(paragraph)
+            {
+                BorderBrush = Brushes.Black,
+                BorderThickness = new Thickness(0.5),
+                Padding = new Thickness(2),
+                Background = background ?? Brushes.White,
+                ColumnSpan = columnSpan
+            };
+
+            return cell;
         }
 
         private void ClearPaymentForm()
@@ -281,5 +805,15 @@ Thank you for your payment!
             txtPaymentNotes.Clear();
             lblCustomerBalance.Text = "";
         }
+    }
+
+    public class CustomerTransaction
+    {
+        public DateTime Date { get; set; }
+        public string Type { get; set; }
+        public string Description { get; set; }
+        public decimal Debit { get; set; }
+        public decimal Credit { get; set; }
+        public string Reference { get; set; }
     }
 }
