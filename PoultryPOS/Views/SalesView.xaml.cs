@@ -87,7 +87,7 @@ namespace PoultryPOS.Views
         {
             var totalAmount = _saleItems.Sum(item => item.TotalAmount);
             var lineCount = _saleItems.Count;
-            lblInvoiceTotal.Text = $"Invoice Total: {totalAmount:C} | Line Items: {lineCount}";
+            lblInvoiceTotal.Text = $"إجمالي الفاتورة: {totalAmount:C} | عدد البنود: {lineCount}";
         }
 
         private void CmbCustomer_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -98,7 +98,7 @@ namespace PoultryPOS.Views
                 var customer = _customerService.GetById(customerId);
                 if (customer != null && customer.Balance > 0)
                 {
-                    lblCurrentBalance.Text = $"Current Balance: {customer.Balance:C}";
+                    lblCurrentBalance.Text = $"الرصيد الحالي: {customer.Balance:C}";
                 }
                 else
                 {
@@ -157,12 +157,12 @@ namespace PoultryPOS.Views
             try
             {
                 ProcessInvoice(true);
-                MessageBox.Show("Invoice processed successfully - Paid Now!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("تم معالجة الفاتورة بنجاح - مدفوع نقداً!", "نجح", MessageBoxButton.OK, MessageBoxImage.Information);
                 ClearAll();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error processing invoice: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"خطأ في معالجة الفاتورة: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -173,12 +173,12 @@ namespace PoultryPOS.Views
             try
             {
                 ProcessInvoice(false);
-                MessageBox.Show("Invoice added to customer account!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("تم إضافة الفاتورة إلى حساب العميل!", "نجح", MessageBoxButton.OK, MessageBoxImage.Information);
                 ClearAll();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error processing invoice: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"خطأ في معالجة الفاتورة: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -191,31 +191,31 @@ namespace PoultryPOS.Views
         {
             if (cmbCustomer.SelectedValue == null)
             {
-                MessageBox.Show("Please select a customer.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("يرجى اختيار عميل.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return false;
             }
 
             if (cmbTruck.SelectedValue == null)
             {
-                MessageBox.Show("Please select a truck.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("يرجى اختيار شاحنة.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return false;
             }
 
             if (cmbDriver.SelectedValue == null)
             {
-                MessageBox.Show("Please select a driver.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("يرجى اختيار سائق.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return false;
             }
 
             if (!decimal.TryParse(txtPricePerKg.Text, out decimal price) || price <= 0)
             {
-                MessageBox.Show("Please enter a valid price per kg.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("يرجى إدخال سعر صالح للكيلو.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return false;
             }
 
             if (_saleItems.Count == 0)
             {
-                MessageBox.Show("Please add at least one sale item.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("يرجى إضافة عنصر بيع واحد على الأقل.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return false;
             }
 
@@ -223,25 +223,25 @@ namespace PoultryPOS.Views
             {
                 if (item.GrossWeight <= 0)
                 {
-                    MessageBox.Show("Please enter valid gross weight for all items.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show("يرجى إدخال وزن إجمالي صالح لجميع العناصر.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return false;
                 }
 
                 if (item.NumberOfCages <= 0)
                 {
-                    MessageBox.Show("Please enter valid number of cages for all items.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show("يرجى إدخال عدد صالح للأقفاص لجميع العناصر.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return false;
                 }
 
                 if (item.SingleCageWeight <= 0)
                 {
-                    MessageBox.Show("Please enter valid single cage weight for all items.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show("يرجى إدخال وزن صالح للقفص الواحد لجميع العناصر.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return false;
                 }
 
                 if (item.NetWeight <= 0)
                 {
-                    MessageBox.Show("Net weight must be greater than zero for all items.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show("يجب أن يكون الوزن الصافي أكبر من الصفر لجميع العناصر.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return false;
                 }
             }
@@ -316,11 +316,11 @@ namespace PoultryPOS.Views
 
                 printDialog.PrintDocument(
                     ((IDocumentPaginatorSource)flowDocument).DocumentPaginator,
-                    "Poultry Sales Invoice");
+                    "فاتورة مبيعات الدواجن");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error printing receipt: {ex.Message}", "Print Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"خطأ في طباعة الإيصال: {ex.Message}", "خطأ في الطباعة", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         private FlowDocument CreateInvoiceDocument(

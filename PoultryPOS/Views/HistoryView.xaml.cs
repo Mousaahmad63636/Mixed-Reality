@@ -48,11 +48,12 @@ namespace PoultryPOS.Views
                     Date = sale.SaleDate,
                     CustomerName = sale.CustomerName ?? "",
                     Type = "Sale",
+                    TypeArabic = "مبيعة",
                     Amount = sale.TotalAmount,
                     AmountDisplay = $"+{sale.TotalAmount:C}",
                     TruckName = sale.TruckName,
                     DriverName = sale.DriverName,
-                    Notes = $"{sale.NetWeight:F2}kg @ {sale.PricePerKg:C}/kg",
+                    Notes = $"{sale.NetWeight:F2}كغ @ {sale.PricePerKg:C}/كغ",
                     CustomerId = sale.CustomerId
                 });
             }
@@ -65,6 +66,7 @@ namespace PoultryPOS.Views
                     Date = payment.PaymentDate,
                     CustomerName = payment.CustomerName ?? "",
                     Type = "Payment",
+                    TypeArabic = "دفعة",
                     Amount = payment.Amount,
                     AmountDisplay = $"-{payment.Amount:C}",
                     TruckName = "-",
@@ -82,7 +84,7 @@ namespace PoultryPOS.Views
             var customers = _customerService.GetAll().OrderBy(c => c.Name).ToList();
 
             cmbCustomerFilter.Items.Clear();
-            cmbCustomerFilter.Items.Add(new ComboBoxItem { Content = "All Customers", Tag = -1 });
+            cmbCustomerFilter.Items.Add(new ComboBoxItem { Content = "جميع العملاء", Tag = -1 });
 
             foreach (var customer in customers)
             {
@@ -127,11 +129,11 @@ namespace PoultryPOS.Views
             if (cmbTypeFilter.SelectedItem is ComboBoxItem typeItem)
             {
                 var typeFilter = typeItem.Content.ToString();
-                if (typeFilter == "Sales Only")
+                if (typeFilter == "المبيعات فقط")
                 {
                     filteredTransactions = filteredTransactions.Where(t => t.Type == "Sale");
                 }
-                else if (typeFilter == "Payments Only")
+                else if (typeFilter == "المدفوعات فقط")
                 {
                     filteredTransactions = filteredTransactions.Where(t => t.Type == "Payment");
                 }
@@ -181,16 +183,15 @@ namespace PoultryPOS.Views
             UpdatePageNumbers();
         }
 
-
         private void UpdatePaginationInfo(int start, int end, int total)
         {
             if (total == 0)
             {
-                lblPaginationInfo.Text = "No records found";
+                lblPaginationInfo.Text = "لا توجد سجلات";
             }
             else
             {
-                lblPaginationInfo.Text = $"Showing {start}-{end} of {total} records (Page {_currentPage} of {_totalPages})";
+                lblPaginationInfo.Text = $"عرض {start}-{end} من {total} سجل (الصفحة {_currentPage} من {_totalPages})";
             }
         }
 
@@ -210,6 +211,7 @@ namespace PoultryPOS.Views
             btnNextPage.IsEnabled = _currentPage < _totalPages;
             btnLastPage.IsEnabled = _currentPage < _totalPages;
         }
+
         private void UpdatePageNumbers()
         {
             spPageNumbers.Children.Clear();
@@ -278,7 +280,7 @@ namespace PoultryPOS.Views
         {
             if (_totalPages <= 0)
             {
-                MessageBox.Show("No data available for pagination", "No Data", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("لا توجد بيانات متاحة للترقيم", "لا توجد بيانات", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -292,10 +294,11 @@ namespace PoultryPOS.Views
                 }
                 else
                 {
-                    MessageBox.Show($"Please enter a page number between 1 and {_totalPages}", "Invalid Page", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show($"يرجى إدخال رقم صفحة بين 1 و {_totalPages}", "صفحة غير صالحة", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
         }
+
         private void TxtJumpToPage_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
@@ -313,6 +316,7 @@ namespace PoultryPOS.Views
                 UpdatePaginationAndDisplay();
             }
         }
+
         private void BtnToday_Click(object sender, RoutedEventArgs e)
         {
             dpFromDate.SelectedDate = DateTime.Today;
@@ -341,5 +345,19 @@ namespace PoultryPOS.Views
             cmbCustomerFilter.SelectedIndex = 0;
             cmbTypeFilter.SelectedIndex = 0;
         }
+    }
+
+    public class Transaction
+    {
+        public DateTime Date { get; set; }
+        public string CustomerName { get; set; }
+        public string Type { get; set; }
+        public string TypeArabic { get; set; }
+        public decimal Amount { get; set; }
+        public string AmountDisplay { get; set; }
+        public string TruckName { get; set; }
+        public string DriverName { get; set; }
+        public string Notes { get; set; }
+        public int CustomerId { get; set; }
     }
 }

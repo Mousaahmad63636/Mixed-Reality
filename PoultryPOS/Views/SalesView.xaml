@@ -2,11 +2,12 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="clr-namespace:PoultryPOS.Views"
-      Title="Sales - POS">
+      Title="المبيعات - نقطة البيع"
+      FlowDirection="RightToLeft">
 
     <Page.Resources>
         <Style TargetType="ComboBox">
-            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="HorizontalContentAlignment" Value="Right"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Background" Value="White"/>
             <Setter Property="BorderBrush" Value="#3498DB"/>
@@ -136,22 +137,19 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Header Section -->
             <Border Grid.Row="0" Background="{StaticResource HeaderGradient}" 
                     CornerRadius="12" Padding="10" Margin="0,0,0,5">
                 <StackPanel>
-                    <TextBlock Text="🐔 POULTRY SALES MANAGEMENT" FontSize="28" FontWeight="Bold" 
+                    <TextBlock Text="🐔 إدارة مبيعات الدواجن" FontSize="28" FontWeight="Bold" 
                                Foreground="White" HorizontalAlignment="Center" Margin="0,0,0,10"/>
                 </StackPanel>
             </Border>
 
-            <!-- Customer & Transaction Info Card -->
             <Border Grid.Row="1" Style="{StaticResource CardStyle}">
                 <StackPanel>
-                    <TextBlock Text="📋 TRANSACTION INFORMATION" FontSize="18" FontWeight="Bold" 
+                    <TextBlock Text="📋 معلومات المعاملة" FontSize="18" FontWeight="Bold" 
                                Foreground="#2C3E50" Margin="0,0,0,20" HorizontalAlignment="Center"/>
 
-                    <!-- All Fields in 2x2 Grid -->
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -162,32 +160,28 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <!-- Customer -->
                         <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,15,20">
-                            <TextBlock Text="👤 Customer" FontWeight="Bold" FontSize="14" 
+                            <TextBlock Text="👤 السادة" FontWeight="Bold" FontSize="14" 
                                        Foreground="#2C3E50" Margin="0,0,0,8"/>
                             <ComboBox Name="cmbCustomer" Height="40" SelectionChanged="CmbCustomer_SelectionChanged"/>
                             <TextBlock Name="lblCurrentBalance" Text="" FontWeight="Bold" FontSize="12"
                                        Foreground="#E74C3C" Margin="0,5,0,0" HorizontalAlignment="Center"/>
                         </StackPanel>
 
-                        <!-- Truck -->
                         <StackPanel Grid.Row="0" Grid.Column="1" Margin="15,0,0,20">
-                            <TextBlock Text="🚛 Truck" FontWeight="Bold" FontSize="14" 
+                            <TextBlock Text="🚛 الشاحنة" FontWeight="Bold" FontSize="14" 
                                        Foreground="#2C3E50" Margin="0,0,0,8"/>
                             <ComboBox Name="cmbTruck" Height="40"/>
                         </StackPanel>
 
-                        <!-- Driver -->
                         <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,15,0">
-                            <TextBlock Text="👨‍💼 Driver" FontWeight="Bold" FontSize="14" 
+                            <TextBlock Text="👨‍💼 السائق" FontWeight="Bold" FontSize="14" 
                                        Foreground="#2C3E50" Margin="0,0,0,8"/>
                             <ComboBox Name="cmbDriver" Height="40"/>
                         </StackPanel>
 
-                        <!-- Price per KG -->
                         <StackPanel Grid.Row="1" Grid.Column="1" Margin="15,0,0,0">
-                            <TextBlock Text="💰 Price per KG" FontWeight="Bold" FontSize="14" 
+                            <TextBlock Text="💰 سعر الكيلو" FontWeight="Bold" FontSize="14" 
                                        Foreground="#2C3E50" Margin="0,0,0,8"/>
                             <TextBox Name="txtPricePerKg" Height="40" FontSize="16" FontWeight="Bold"
                                      TextChanged="TxtPricePerKg_TextChanged" 
@@ -197,7 +191,6 @@
                 </StackPanel>
             </Border>
 
-            <!-- Sale Items Management -->
             <Border Grid.Row="2" Style="{StaticResource CardStyle}">
                 <StackPanel>
                     <Grid Margin="0,0,0,15">
@@ -206,10 +199,10 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <TextBlock Grid.Column="0" Text="📦 SALE ITEMS" FontSize="18" FontWeight="Bold" 
+                        <TextBlock Grid.Column="0" Text="📦 عناصر البيع" FontSize="18" FontWeight="Bold" 
                                    Foreground="#2C3E50" VerticalAlignment="Center"/>
 
-                        <Button Grid.Column="1" Name="btnAddRow" Content="➕ ADD ROW" 
+                        <Button Grid.Column="1" Name="btnAddRow" Content="➕ إضافة صف" 
                                 Style="{StaticResource PrimaryButton}" Click="BtnAddRow_Click"/>
                     </Grid>
 
@@ -218,7 +211,7 @@
                                   HeadersVisibility="Column" GridLinesVisibility="Horizontal" 
                                   AlternatingRowBackground="#FAFBFC" Background="White"
                                   RowHeight="45" FontSize="12" Margin="1"
-                                  CellEditEnding="DgSaleItems_CellEditEnding">
+                                  CellEditEnding="DgSaleItems_CellEditEnding" FlowDirection="LeftToRight">
                             <DataGrid.Resources>
                                 <Style TargetType="DataGridColumnHeader">
                                     <Setter Property="Background" Value="#34495E"/>
@@ -236,7 +229,7 @@
                             </DataGrid.Resources>
 
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Gross Weight (KG)" Binding="{Binding GrossWeight}" Width="*">
+                                <DataGridTextColumn Header="الوزن الإجمالي (كغ)" Binding="{Binding GrossWeight}" Width="*">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="HorizontalAlignment" Value="Center"/>
@@ -246,7 +239,7 @@
                                     </DataGridTextColumn.ElementStyle>
                                 </DataGridTextColumn>
 
-                                <DataGridTextColumn Header="Number of Cages" Binding="{Binding NumberOfCages}" Width="*">
+                                <DataGridTextColumn Header="عدد الأقفاص" Binding="{Binding NumberOfCages}" Width="*">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="HorizontalAlignment" Value="Center"/>
@@ -256,7 +249,7 @@
                                     </DataGridTextColumn.ElementStyle>
                                 </DataGridTextColumn>
 
-                                <DataGridTextColumn Header="Single Cage Weight" Binding="{Binding SingleCageWeight}" Width="*">
+                                <DataGridTextColumn Header="وزن القفص الواحد" Binding="{Binding SingleCageWeight}" Width="*">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="HorizontalAlignment" Value="Center"/>
@@ -266,7 +259,7 @@
                                     </DataGridTextColumn.ElementStyle>
                                 </DataGridTextColumn>
 
-                                <DataGridTextColumn Header="Total Cage Weight" Binding="{Binding TotalCageWeight, StringFormat='{}{0:F2}'}" 
+                                <DataGridTextColumn Header="إجمالي وزن الأقفاص" Binding="{Binding TotalCageWeight, StringFormat='{}{0:F2}'}" 
                                                     Width="*" IsReadOnly="True">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
@@ -279,7 +272,7 @@
                                     </DataGridTextColumn.ElementStyle>
                                 </DataGridTextColumn>
 
-                                <DataGridTextColumn Header="Net Weight" Binding="{Binding NetWeight, StringFormat='{}{0:F2}'}" 
+                                <DataGridTextColumn Header="الوزن الصافي" Binding="{Binding NetWeight, StringFormat='{}{0:F2}'}" 
                                                     Width="*" IsReadOnly="True">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
@@ -292,7 +285,7 @@
                                     </DataGridTextColumn.ElementStyle>
                                 </DataGridTextColumn>
 
-                                <DataGridTextColumn Header="Total Amount" Binding="{Binding TotalAmount, StringFormat='{}{0:C}'}" 
+                                <DataGridTextColumn Header="المبلغ الإجمالي" Binding="{Binding TotalAmount, StringFormat='{}{0:C}'}" 
                                                     Width="*" IsReadOnly="True">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
@@ -305,10 +298,10 @@
                                     </DataGridTextColumn.ElementStyle>
                                 </DataGridTextColumn>
 
-                                <DataGridTemplateColumn Header="Action" Width="100">
+                                <DataGridTemplateColumn Header="الإجراء" Width="100">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Button Content="🗑️ Remove" Width="80" Height="30" 
+                                            <Button Content="🗑️ حذف" Width="80" Height="30" 
                                                     Style="{StaticResource DangerButton}" FontSize="10"
                                                     Click="BtnRemoveRow_Click"/>
                                         </DataTemplate>
@@ -320,7 +313,6 @@
                 </StackPanel>
             </Border>
 
-            <!-- Invoice Summary and Actions -->
             <Border Grid.Row="4" Style="{StaticResource CardStyle}" Background="{StaticResource SummaryGradient}">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -328,20 +320,18 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Invoice Summary -->
                     <Border Grid.Row="0" Background="White" CornerRadius="8" Padding="20" Margin="0,0,0,20"
                             BorderBrush="#3498DB" BorderThickness="2">
                         <StackPanel>
-                            <TextBlock Text="📊 INVOICE SUMMARY" FontSize="16" FontWeight="Bold" 
+                            <TextBlock Text="📊 ملخص الفاتورة" FontSize="16" FontWeight="Bold" 
                                        Foreground="#2C3E50" HorizontalAlignment="Center" Margin="0,0,0,15"/>
 
-                            <TextBlock Name="lblInvoiceTotal" Text="Invoice Total: $0.00 | Line Items: 0" 
+                            <TextBlock Name="lblInvoiceTotal" Text="إجمالي الفاتورة: $0.00 | عدد البنود: 0" 
                                        FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" 
                                        Foreground="#27AE60"/>
                         </StackPanel>
                     </Border>
 
-                    <!-- Action Buttons -->
                     <Grid Grid.Row="1">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -349,13 +339,13 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <Button Grid.Column="0" Name="btnPayNow" Content="💳 PAY NOW" 
+                        <Button Grid.Column="0" Name="btnPayNow" Content="💳 ادفع الآن" 
                                 Style="{StaticResource PrimaryButton}" Click="BtnPayNow_Click" Margin="0,0,10,0"/>
 
-                        <Button Grid.Column="1" Name="btnAddToAccount" Content="📝 ADD TO ACCOUNT" 
+                        <Button Grid.Column="1" Name="btnAddToAccount" Content="📝 إضافة للحساب" 
                                 Style="{StaticResource SecondaryButton}" Click="BtnAddToAccount_Click" Margin="5,0,5,0"/>
 
-                        <Button Grid.Column="2" Name="btnClearAll" Content="🗑️ CLEAR ALL" 
+                        <Button Grid.Column="2" Name="btnClearAll" Content="🗑️ مسح الكل" 
                                 Style="{StaticResource NeutralButton}" Click="BtnClearAll_Click" Margin="10,0,0,0"/>
                     </Grid>
                 </Grid>

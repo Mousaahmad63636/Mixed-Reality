@@ -61,13 +61,13 @@ namespace PoultryPOS.Views
         {
             if (string.IsNullOrWhiteSpace(txtTruckName.Text))
             {
-                MessageBox.Show("Please enter truck name.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("يرجى إدخال اسم الشاحنة.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             if (!int.TryParse(txtCurrentLoad.Text, out int currentLoad) || currentLoad < 0)
             {
-                MessageBox.Show("Please enter a valid current load.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("يرجى إدخال حمولة حالية صالحة.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -83,11 +83,11 @@ namespace PoultryPOS.Views
                 _truckService.Add(truck);
                 LoadTrucks();
                 ClearTruckForm();
-                MessageBox.Show("Truck added successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("تم إضافة الشاحنة بنجاح!", "نجح", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error adding truck: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"خطأ في إضافة الشاحنة: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -95,19 +95,19 @@ namespace PoultryPOS.Views
         {
             if (_selectedTruck == null)
             {
-                MessageBox.Show("Please select a truck to update.", "Selection Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("يرجى اختيار شاحنة للتحديث.", "خطأ في التحديد", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(txtTruckName.Text))
             {
-                MessageBox.Show("Please enter truck name.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("يرجى إدخال اسم الشاحنة.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             if (!int.TryParse(txtCurrentLoad.Text, out int currentLoad) || currentLoad < 0)
             {
-                MessageBox.Show("Please enter a valid current load.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("يرجى إدخال حمولة حالية صالحة.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -120,11 +120,11 @@ namespace PoultryPOS.Views
                 _truckService.Update(_selectedTruck);
                 LoadTrucks();
                 ClearTruckForm();
-                MessageBox.Show("Truck updated successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("تم تحديث الشاحنة بنجاح!", "نجح", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error updating truck: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"خطأ في تحديث الشاحنة: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -132,12 +132,12 @@ namespace PoultryPOS.Views
         {
             if (_selectedTruck == null)
             {
-                MessageBox.Show("Please select a truck to delete.", "Selection Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("يرجى اختيار شاحنة للحذف.", "خطأ في التحديد", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            var result = MessageBox.Show($"Are you sure you want to delete truck '{_selectedTruck.Name}'?",
-                                       "Confirm Delete", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            var result = MessageBox.Show($"هل أنت متأكد من حذف الشاحنة '{_selectedTruck.Name}'؟",
+                                       "تأكيد الحذف", MessageBoxButton.YesNo, MessageBoxImage.Question);
 
             if (result == MessageBoxResult.Yes)
             {
@@ -146,11 +146,11 @@ namespace PoultryPOS.Views
                     _truckService.Delete(_selectedTruck.Id);
                     LoadTrucks();
                     ClearTruckForm();
-                    MessageBox.Show("Truck deleted successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show("تم حذف الشاحنة بنجاح!", "نجح", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Error deleting truck: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"خطأ في حذف الشاحنة: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
@@ -173,7 +173,7 @@ namespace PoultryPOS.Views
         {
             if (string.IsNullOrWhiteSpace(txtDriverName.Text))
             {
-                MessageBox.Show("Please enter driver name.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("يرجى إدخال اسم السائق.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -188,11 +188,11 @@ namespace PoultryPOS.Views
                 _driverService.Add(driver);
                 LoadDrivers();
                 ClearDriverForm();
-                MessageBox.Show("Driver added successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("تم إضافة السائق بنجاح!", "نجح", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error adding driver: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"خطأ في إضافة السائق: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -200,13 +200,13 @@ namespace PoultryPOS.Views
         {
             if (_selectedDriver == null)
             {
-                MessageBox.Show("Please select a driver to update.", "Selection Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("يرجى اختيار سائق للتحديث.", "خطأ في التحديد", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(txtDriverName.Text))
             {
-                MessageBox.Show("Please enter driver name.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("يرجى إدخال اسم السائق.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -218,11 +218,11 @@ namespace PoultryPOS.Views
                 _driverService.Update(_selectedDriver);
                 LoadDrivers();
                 ClearDriverForm();
-                MessageBox.Show("Driver updated successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("تم تحديث السائق بنجاح!", "نجح", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error updating driver: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"خطأ في تحديث السائق: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -230,12 +230,12 @@ namespace PoultryPOS.Views
         {
             if (_selectedDriver == null)
             {
-                MessageBox.Show("Please select a driver to delete.", "Selection Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("يرجى اختيار سائق للحذف.", "خطأ في التحديد", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            var result = MessageBox.Show($"Are you sure you want to delete driver '{_selectedDriver.Name}'?",
-                                       "Confirm Delete", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            var result = MessageBox.Show($"هل أنت متأكد من حذف السائق '{_selectedDriver.Name}'؟",
+                                       "تأكيد الحذف", MessageBoxButton.YesNo, MessageBoxImage.Question);
 
             if (result == MessageBoxResult.Yes)
             {
@@ -244,11 +244,11 @@ namespace PoultryPOS.Views
                     _driverService.Delete(_selectedDriver.Id);
                     LoadDrivers();
                     ClearDriverForm();
-                    MessageBox.Show("Driver deleted successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show("تم حذف السائق بنجاح!", "نجح", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Error deleting driver: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"خطأ في حذف السائق: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }

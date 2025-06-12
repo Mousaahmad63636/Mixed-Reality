@@ -48,8 +48,8 @@ namespace PoultryPOS.Views
             dgPayments.ItemsSource = payments;
 
             var total = payments.Sum(p => p.Amount);
-            lblFilteredTotal.Text = $"Total: {total:C}";
-            lblFilteredCount.Text = $"Count: {payments.Count}";
+            lblFilteredTotal.Text = $"الإجمالي: {total:C}";
+            lblFilteredCount.Text = $"العدد: {payments.Count}";
         }
 
         private void UpdateStats()
@@ -60,9 +60,9 @@ namespace PoultryPOS.Views
             var customers = _customerService.GetAll();
             var totalOutstanding = customers.Sum(c => c.Balance);
 
-            lblTodayPayments.Text = $"Today's Payments: {todayTotal:C}";
-            lblTodayCount.Text = $"Payment Count: {todayPayments.Count}";
-            lblTotalOutstanding.Text = $"Total Outstanding: {totalOutstanding:C}";
+            lblTodayPayments.Text = $"دفعات اليوم: {todayTotal:C}";
+            lblTodayCount.Text = $"عدد الدفعات: {todayPayments.Count}";
+            lblTotalOutstanding.Text = $"إجمالي المستحق: {totalOutstanding:C}";
         }
 
         private void CmbCustomer_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -73,7 +73,7 @@ namespace PoultryPOS.Views
                 var customer = _customerService.GetById(customerId);
                 if (customer != null)
                 {
-                    lblCurrentBalance.Text = $"Current Balance: {customer.Balance:C}";
+                    lblCurrentBalance.Text = $"الرصيد الحالي: {customer.Balance:C}";
                 }
             }
         }
@@ -82,13 +82,13 @@ namespace PoultryPOS.Views
         {
             if (cmbCustomer.SelectedValue == null)
             {
-                MessageBox.Show("Please select a customer.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("يرجى اختيار عميل.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             if (!decimal.TryParse(txtPaymentAmount.Text, out decimal paymentAmount) || paymentAmount <= 0)
             {
-                MessageBox.Show("Please enter a valid payment amount.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("يرجى إدخال مبلغ دفعة صالح.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -97,14 +97,14 @@ namespace PoultryPOS.Views
 
             if (customer == null)
             {
-                MessageBox.Show("Customer not found.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("العميل غير موجود.", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
             if (paymentAmount > customer.Balance)
             {
-                var result = MessageBox.Show($"Payment amount ({paymentAmount:C}) is greater than customer balance ({customer.Balance:C}). Continue anyway?",
-                                           "Payment Warning", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                var result = MessageBox.Show($"مبلغ الدفعة ({paymentAmount:C}) أكبر من رصيد العميل ({customer.Balance:C}). هل تريد المتابعة؟",
+                                           "تحذير الدفعة", MessageBoxButton.YesNo, MessageBoxImage.Warning);
                 if (result == MessageBoxResult.No)
                     return;
             }
@@ -129,11 +129,11 @@ namespace PoultryPOS.Views
                 UpdateStats();
                 LoadAllPayments();
                 ClearForm();
-                MessageBox.Show("Payment received successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("تم استلام الدفعة بنجاح!", "نجح", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error processing payment: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"خطأ في معالجة الدفعة: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -156,11 +156,11 @@ namespace PoultryPOS.Views
 
                 printDialog.PrintDocument(
                     ((IDocumentPaginatorSource)flowDocument).DocumentPaginator,
-                    "Payment Receipt");
+                    "إيصال استلام دفعة");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error printing receipt: {ex.Message}", "Print Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"خطأ في طباعة الإيصال: {ex.Message}", "خطأ في الطباعة", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -380,8 +380,8 @@ namespace PoultryPOS.Views
                     dgPayments.ItemsSource = filteredPayments;
 
                     var total = filteredPayments.Sum(p => p.Amount);
-                    lblFilteredTotal.Text = $"Filtered Total: {total:C}";
-                    lblFilteredCount.Text = $"Count: {filteredPayments.Count}";
+                    lblFilteredTotal.Text = $"الإجمالي المفلتر: {total:C}";
+                    lblFilteredCount.Text = $"العدد: {filteredPayments.Count}";
                 }
             }
         }
