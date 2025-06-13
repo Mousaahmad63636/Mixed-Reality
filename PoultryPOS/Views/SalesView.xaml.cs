@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Printing;
+using System.Windows.Input;
 namespace PoultryPOS.Views
 {
     public partial class SalesView : Page
@@ -49,7 +50,50 @@ namespace PoultryPOS.Views
         {
             dgSaleItems.ItemsSource = _saleItems;
         }
+        private void DgSaleItems_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter && sender is DataGrid dataGrid)
+            {
+                var currentCell = dataGrid.CurrentCell;
+                var currentRowIndex = dataGrid.Items.IndexOf(currentCell.Item);
+                var currentColumnIndex = currentCell.Column.DisplayIndex;
 
+                bool isLastEditableColumn = currentColumnIndex == 2;
+                bool isLastRow = currentRowIndex == dataGrid.Items.Count - 1;
+
+                if (isLastEditableColumn && isLastRow && currentCell.Item is SaleItem)
+                {
+                    var newItem = new SaleItem();
+                    if (decimal.TryParse(txtPricePerKg.Text, out decimal price))
+                    {
+                        newItem.UpdatePrice(price);
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(txtSingleCageWeight.Text) &&
+                        decimal.TryParse(txtSingleCageWeight.Text, out decimal cageWeight))
+                    {
+                        newItem.SingleCageWeight = cageWeight;
+                    }
+
+                    _saleItems.Add(newItem);
+
+                    Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        dataGrid.SelectedIndex = dataGrid.Items.Count - 1;
+                        dataGrid.ScrollIntoView(dataGrid.SelectedItem);
+
+                        var newRow = dataGrid.ItemContainerGenerator.ContainerFromIndex(dataGrid.Items.Count - 1) as DataGridRow;
+                        if (newRow != null)
+                        {
+                            dataGrid.CurrentCell = new DataGridCellInfo(newRow.Item, dataGrid.Columns[0]);
+                            dataGrid.BeginEdit();
+                        }
+                    }), System.Windows.Threading.DispatcherPriority.Background);
+
+                    e.Handled = true;
+                }
+            }
+        }
         private void SaleItems_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
             if (e.NewItems != null)
@@ -74,7 +118,40 @@ namespace PoultryPOS.Views
 
             UpdateTotals();
         }
+        private void BtnApplyCageWeight_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(txtSingleCageWeight.Text))
+            {
+                MessageBox.Show("يرجى إدخال وزن القفص الواحد.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
 
+            if (!decimal.TryParse(txtSingleCageWeight.Text, out decimal cageWeight) || cageWeight <= 0)
+            {
+                MessageBox.Show("يرجى إدخال وزن صالح للقفص الواحد.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (_saleItems.Count == 0)
+            {
+                MessageBox.Show("لا توجد عناصر في الفاتورة لتطبيق وزن القفص عليها.", "لا توجد عناصر", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var result = MessageBox.Show($"هل تريد تطبيق وزن القفص ({cageWeight:F2} كغ) على جميع العناصر الحالية؟",
+                                        "تأكيد التطبيق", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                foreach (var item in _saleItems)
+                {
+                    item.SingleCageWeight = cageWeight;
+                }
+
+                MessageBox.Show($"تم تطبيق وزن القفص ({cageWeight:F2} كغ) على جميع العناصر بنجاح!",
+                               "تم التطبيق", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
         private void SaleItem_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(SaleItem.TotalAmount))
@@ -127,6 +204,40 @@ namespace PoultryPOS.Views
                     if (decimal.TryParse(txtPricePerKg.Text, out decimal price))
                     {
                         item.UpdatePrice(price);
+                    }
+
+                    // Check if this is the last editable column (SingleCageWeight - column index 2)
+                    // and if this is the last row
+                    var currentRowIndex = dgSaleItems.Items.IndexOf(e.Row.Item);
+                    var isLastRow = currentRowIndex == dgSaleItems.Items.Count - 1;
+                    var isLastEditableColumn = e.Column.DisplayIndex == 2; // SingleCageWeight column
+
+                    if (isLastRow && isLastEditableColumn)
+                    {
+                        // Add new row automatically
+                        var newItem = new SaleItem();
+                        if (decimal.TryParse(txtPricePerKg.Text, out decimal priceForNew))
+                        {
+                            newItem.UpdatePrice(priceForNew);
+                        }
+
+                        // Apply default cage weight if set
+                        if (!string.IsNullOrWhiteSpace(txtSingleCageWeight.Text) &&
+                            decimal.TryParse(txtSingleCageWeight.Text, out decimal cageWeight))
+                        {
+                            newItem.SingleCageWeight = cageWeight;
+                        }
+
+                        _saleItems.Add(newItem);
+
+                        // Focus the new row after a short delay
+                        Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            dgSaleItems.SelectedIndex = dgSaleItems.Items.Count - 1;
+                            dgSaleItems.ScrollIntoView(dgSaleItems.SelectedItem);
+                            dgSaleItems.CurrentCell = new DataGridCellInfo(dgSaleItems.SelectedItem, dgSaleItems.Columns[0]);
+                            dgSaleItems.BeginEdit();
+                        }), System.Windows.Threading.DispatcherPriority.Background);
                     }
                 }
             }), System.Windows.Threading.DispatcherPriority.Background);

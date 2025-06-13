@@ -151,41 +151,50 @@
                                Foreground="#2C3E50" Margin="0,0,0,20" HorizontalAlignment="Center"/>
 
                     <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,15,20">
-                            <TextBlock Text="👤 السادة" FontWeight="Bold" FontSize="14" 
-                                       Foreground="#2C3E50" Margin="0,0,0,8"/>
-                            <ComboBox Name="cmbCustomer" Height="40" SelectionChanged="CmbCustomer_SelectionChanged"/>
-                            <TextBlock Name="lblCurrentBalance" Text="" FontWeight="Bold" FontSize="12"
-                                       Foreground="#E74C3C" Margin="0,5,0,0" HorizontalAlignment="Center"/>
+                        <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                            <TextBlock Text="👤 السادة" FontWeight="Bold" FontSize="12" 
+                                       Foreground="#2C3E50" Margin="0,0,0,5"/>
+                            <ComboBox Name="cmbCustomer" Height="35" SelectionChanged="CmbCustomer_SelectionChanged"/>
+                            <TextBlock Name="lblCurrentBalance" Text="" FontWeight="Bold" FontSize="10"
+                                       Foreground="#E74C3C" Margin="0,3,0,0" HorizontalAlignment="Center"/>
                         </StackPanel>
 
-                        <StackPanel Grid.Row="0" Grid.Column="1" Margin="15,0,0,20">
-                            <TextBlock Text="🚛 الشاحنة" FontWeight="Bold" FontSize="14" 
-                                       Foreground="#2C3E50" Margin="0,0,0,8"/>
-                            <ComboBox Name="cmbTruck" Height="40"/>
+                        <StackPanel Grid.Column="1" Margin="8,0,8,0">
+                            <TextBlock Text="🚛 الشاحنة" FontWeight="Bold" FontSize="12" 
+                                       Foreground="#2C3E50" Margin="0,0,0,5"/>
+                            <ComboBox Name="cmbTruck" Height="35"/>
                         </StackPanel>
 
-                        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,15,0">
-                            <TextBlock Text="👨‍💼 السائق" FontWeight="Bold" FontSize="14" 
-                                       Foreground="#2C3E50" Margin="0,0,0,8"/>
-                            <ComboBox Name="cmbDriver" Height="40"/>
+                        <StackPanel Grid.Column="2" Margin="8,0,8,0">
+                            <TextBlock Text="👨‍💼 السائق" FontWeight="Bold" FontSize="12" 
+                                       Foreground="#2C3E50" Margin="0,0,0,5"/>
+                            <ComboBox Name="cmbDriver" Height="35"/>
                         </StackPanel>
 
-                        <StackPanel Grid.Row="1" Grid.Column="1" Margin="15,0,0,0">
-                            <TextBlock Text="💰 سعر الكيلو" FontWeight="Bold" FontSize="14" 
-                                       Foreground="#2C3E50" Margin="0,0,0,8"/>
-                            <TextBox Name="txtPricePerKg" Height="40" FontSize="16" FontWeight="Bold"
+                        <StackPanel Grid.Column="3" Margin="8,0,8,0">
+                            <TextBlock Text="💰 سعر الكيلو" FontWeight="Bold" FontSize="12" 
+                                       Foreground="#2C3E50" Margin="0,0,0,5"/>
+                            <TextBox Name="txtPricePerKg" Height="35" FontSize="14" FontWeight="Bold"
                                      TextChanged="TxtPricePerKg_TextChanged" 
                                      HorizontalContentAlignment="Center"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="4" Margin="8,0,0,0">
+                            <TextBlock Text="⚖️ وزن القفص" FontWeight="Bold" FontSize="12" 
+                                       Foreground="#2C3E50" Margin="0,0,0,5"/>
+                            <TextBox Name="txtSingleCageWeight" Height="35" FontSize="14" FontWeight="Bold"
+                                     HorizontalContentAlignment="Center"/>
+                            <Button Name="btnApplyCageWeight" Content="تطبيق على الكل" Height="32" 
+                                    FontSize="9" Margin="0,2,0,0" Background="#8E44AD" 
+                                    Foreground="White" FontWeight="Bold" Click="BtnApplyCageWeight_Click"/>
                         </StackPanel>
                     </Grid>
                 </StackPanel>
