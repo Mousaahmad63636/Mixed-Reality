@@ -280,6 +280,7 @@ namespace PoultryPOS.Views
             _saleService.Add(sale);
 
             _truckService.UpdateCurrentLoad(truckId, totalNumberOfCages);
+            _truckService.UpdateNetWeight(truckId, totalNetWeight);
 
             if (!isPaidNow)
             {

@@ -23,6 +23,7 @@ namespace PoultryPOS.Services
         {
             CreateDatabaseIfNotExists();
             CreateTablesIfNotExist();
+            AddNetWeightColumnIfNotExists();
         }
 
         private void CreateDatabaseIfNotExists()
@@ -51,6 +52,7 @@ namespace PoultryPOS.Services
                     Id INT IDENTITY(1,1) PRIMARY KEY,
                     Name NVARCHAR(100) NOT NULL,
                     CurrentLoad INT DEFAULT 0,
+                    NetWeight DECIMAL(10,2) DEFAULT 0,
                     PlateNumber NVARCHAR(50),
                     IsActive BIT DEFAULT 1
                 );
@@ -98,6 +100,22 @@ namespace PoultryPOS.Services
                 );";
 
             using var command = new SqlCommand(createTablesScript, connection);
+            command.ExecuteNonQuery();
+        }
+
+        private void AddNetWeightColumnIfNotExists()
+        {
+            using var connection = GetConnection();
+            connection.Open();
+
+            var checkColumnScript = @"
+                IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
+                              WHERE TABLE_NAME = 'Trucks' AND COLUMN_NAME = 'NetWeight')
+                BEGIN
+                    ALTER TABLE Trucks ADD NetWeight DECIMAL(10,2) DEFAULT 0
+                END";
+
+            using var command = new SqlCommand(checkColumnScript, connection);
             command.ExecuteNonQuery();
         }
     }

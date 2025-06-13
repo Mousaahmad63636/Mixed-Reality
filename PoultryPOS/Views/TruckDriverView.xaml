@@ -37,8 +37,23 @@
                         <TextBlock Text="رقم اللوحة (اختياري):" FontWeight="Bold" Margin="0,0,0,5"/>
                         <TextBox Name="txtPlateNumber" Height="30" Margin="0,0,0,10"/>
 
-                        <TextBlock Text="الحمولة الحالية (أقفاص):" FontWeight="Bold" Margin="0,0,0,5"/>
-                        <TextBox Name="txtCurrentLoad" Height="30" Text="0"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="الحمولة الحالية (أقفاص):" FontWeight="Bold" Margin="0,0,0,5"/>
+                                <TextBox Name="txtCurrentLoad" Height="30" Text="0"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="الوزن الصافي (كغ):" FontWeight="Bold" Margin="0,0,0,5"/>
+                                <TextBox Name="txtNetWeight" Height="30" Text="0"/>
+                            </StackPanel>
+                        </Grid>
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" Margin="10,0,0,0">
@@ -58,7 +73,8 @@
                           AlternatingRowBackground="#F8F9FA" SelectionChanged="DgTrucks_SelectionChanged" FlowDirection="LeftToRight">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="الاسم" Binding="{Binding Name}" Width="*"/>
-                        <DataGridTextColumn Header="الحمولة" Binding="{Binding CurrentLoad}" Width="60"/>
+                        <DataGridTextColumn Header="عدد الاقفاص" Binding="{Binding CurrentLoad}" Width="60"/>
+                        <DataGridTextColumn Header="وزن البضاعة " Binding="{Binding NetWeight, StringFormat=F2}" Width="80"/>
                         <DataGridTextColumn Header="اللوحة" Binding="{Binding PlateNumber}" Width="100"/>
                     </DataGrid.Columns>
                 </DataGrid>

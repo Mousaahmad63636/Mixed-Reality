@@ -1,12 +1,51 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "C:\\Users\\Mr. Ahmad\\Desktop\\kaboom\\",
-  "Documents": [],
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{7451E2F2-1005-461C-904F-855865B11CC9}|PoultryPOS\\PoultryPOS.csproj|c:\\users\\mr. ahmad\\desktop\\kaboom\\poultrypos\\views\\truckdriverview.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{7451E2F2-1005-461C-904F-855865B11CC9}|PoultryPOS\\PoultryPOS.csproj|solutionrelative:poultrypos\\views\\truckdriverview.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7451E2F2-1005-461C-904F-855865B11CC9}|PoultryPOS\\PoultryPOS.csproj|c:\\users\\mr. ahmad\\desktop\\kaboom\\poultrypos\\views\\salesview.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{7451E2F2-1005-461C-904F-855865B11CC9}|PoultryPOS\\PoultryPOS.csproj|solutionrelative:poultrypos\\views\\salesview.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
       "VerticalTabListWidth": 256,
-      "DocumentGroups": []
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "TruckDriverView.xaml",
+              "DocumentMoniker": "C:\\Users\\Mr. Ahmad\\Desktop\\kaboom\\PoultryPOS\\Views\\TruckDriverView.xaml",
+              "RelativeDocumentMoniker": "PoultryPOS\\Views\\TruckDriverView.xaml",
+              "ToolTip": "C:\\Users\\Mr. Ahmad\\Desktop\\kaboom\\PoultryPOS\\Views\\TruckDriverView.xaml",
+              "RelativeToolTip": "PoultryPOS\\Views\\TruckDriverView.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2025-06-12T10:36:13.954Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "SalesView.xaml",
+              "DocumentMoniker": "C:\\Users\\Mr. Ahmad\\Desktop\\kaboom\\PoultryPOS\\Views\\SalesView.xaml",
+              "RelativeDocumentMoniker": "PoultryPOS\\Views\\SalesView.xaml",
+              "ToolTip": "C:\\Users\\Mr. Ahmad\\Desktop\\kaboom\\PoultryPOS\\Views\\SalesView.xaml",
+              "RelativeToolTip": "PoultryPOS\\Views\\SalesView.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2025-06-12T10:35:35.535Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

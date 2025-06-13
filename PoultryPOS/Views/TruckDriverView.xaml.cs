@@ -44,6 +44,7 @@ namespace PoultryPOS.Views
                 txtTruckName.Text = truck.Name;
                 txtPlateNumber.Text = truck.PlateNumber ?? "";
                 txtCurrentLoad.Text = truck.CurrentLoad.ToString();
+                txtNetWeight.Text = truck.NetWeight.ToString("F2");
             }
         }
 
@@ -71,13 +72,20 @@ namespace PoultryPOS.Views
                 return;
             }
 
+            if (!decimal.TryParse(txtNetWeight.Text, out decimal netWeight) || netWeight < 0)
+            {
+                MessageBox.Show("يرجى إدخال وزن صافي صالح.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             try
             {
                 var truck = new Truck
                 {
                     Name = txtTruckName.Text.Trim(),
                     PlateNumber = string.IsNullOrWhiteSpace(txtPlateNumber.Text) ? null : txtPlateNumber.Text.Trim(),
-                    CurrentLoad = currentLoad
+                    CurrentLoad = currentLoad,
+                    NetWeight = netWeight
                 };
 
                 _truckService.Add(truck);
@@ -111,11 +119,18 @@ namespace PoultryPOS.Views
                 return;
             }
 
+            if (!decimal.TryParse(txtNetWeight.Text, out decimal netWeight) || netWeight < 0)
+            {
+                MessageBox.Show("يرجى إدخال وزن صافي صالح.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             try
             {
                 _selectedTruck.Name = txtTruckName.Text.Trim();
                 _selectedTruck.PlateNumber = string.IsNullOrWhiteSpace(txtPlateNumber.Text) ? null : txtPlateNumber.Text.Trim();
                 _selectedTruck.CurrentLoad = currentLoad;
+                _selectedTruck.NetWeight = netWeight;
 
                 _truckService.Update(_selectedTruck);
                 LoadTrucks();
@@ -165,6 +180,7 @@ namespace PoultryPOS.Views
             txtTruckName.Clear();
             txtPlateNumber.Clear();
             txtCurrentLoad.Text = "0";
+            txtNetWeight.Text = "0";
             _selectedTruck = null;
             dgTrucks.SelectedItem = null;
         }

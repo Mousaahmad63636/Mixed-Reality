@@ -29,6 +29,7 @@ namespace PoultryPOS.Services
                     Id = reader.GetInt32("Id"),
                     Name = reader.GetString("Name"),
                     CurrentLoad = reader.GetInt32("CurrentLoad"),
+                    NetWeight = reader.GetDecimal("NetWeight"),
                     PlateNumber = reader.IsDBNull("PlateNumber") ? null : reader.GetString("PlateNumber"),
                     IsActive = reader.GetBoolean("IsActive")
                 });
@@ -42,9 +43,10 @@ namespace PoultryPOS.Services
             using var connection = _dbService.GetConnection();
             connection.Open();
 
-            var command = new SqlCommand("INSERT INTO Trucks (Name, CurrentLoad, PlateNumber) VALUES (@Name, @CurrentLoad, @PlateNumber)", connection);
+            var command = new SqlCommand("INSERT INTO Trucks (Name, CurrentLoad, NetWeight, PlateNumber) VALUES (@Name, @CurrentLoad, @NetWeight, @PlateNumber)", connection);
             command.Parameters.AddWithValue("@Name", truck.Name);
             command.Parameters.AddWithValue("@CurrentLoad", truck.CurrentLoad);
+            command.Parameters.AddWithValue("@NetWeight", truck.NetWeight);
             command.Parameters.AddWithValue("@PlateNumber", truck.PlateNumber ?? (object)DBNull.Value);
 
             command.ExecuteNonQuery();
@@ -55,14 +57,16 @@ namespace PoultryPOS.Services
             using var connection = _dbService.GetConnection();
             connection.Open();
 
-            var command = new SqlCommand("UPDATE Trucks SET Name = @Name, CurrentLoad = @CurrentLoad, PlateNumber = @PlateNumber WHERE Id = @Id", connection);
+            var command = new SqlCommand("UPDATE Trucks SET Name = @Name, CurrentLoad = @CurrentLoad, NetWeight = @NetWeight, PlateNumber = @PlateNumber WHERE Id = @Id", connection);
             command.Parameters.AddWithValue("@Id", truck.Id);
             command.Parameters.AddWithValue("@Name", truck.Name);
             command.Parameters.AddWithValue("@CurrentLoad", truck.CurrentLoad);
+            command.Parameters.AddWithValue("@NetWeight", truck.NetWeight);
             command.Parameters.AddWithValue("@PlateNumber", truck.PlateNumber ?? (object)DBNull.Value);
 
             command.ExecuteNonQuery();
         }
+
         public void UpdateCurrentLoad(int truckId, int cagesUsed)
         {
             using var connection = _dbService.GetConnection();
@@ -71,6 +75,18 @@ namespace PoultryPOS.Services
             var command = new SqlCommand("UPDATE Trucks SET CurrentLoad = CurrentLoad - @CagesUsed WHERE Id = @Id", connection);
             command.Parameters.AddWithValue("@Id", truckId);
             command.Parameters.AddWithValue("@CagesUsed", cagesUsed);
+
+            command.ExecuteNonQuery();
+        }
+
+        public void UpdateNetWeight(int truckId, decimal weightUsed)
+        {
+            using var connection = _dbService.GetConnection();
+            connection.Open();
+
+            var command = new SqlCommand("UPDATE Trucks SET NetWeight = NetWeight - @WeightUsed WHERE Id = @Id", connection);
+            command.Parameters.AddWithValue("@Id", truckId);
+            command.Parameters.AddWithValue("@WeightUsed", weightUsed);
 
             command.ExecuteNonQuery();
         }
@@ -91,6 +107,7 @@ namespace PoultryPOS.Services
                     Id = reader.GetInt32("Id"),
                     Name = reader.GetString("Name"),
                     CurrentLoad = reader.GetInt32("CurrentLoad"),
+                    NetWeight = reader.GetDecimal("NetWeight"),
                     PlateNumber = reader.IsDBNull("PlateNumber") ? null : reader.GetString("PlateNumber"),
                     IsActive = reader.GetBoolean("IsActive")
                 };
