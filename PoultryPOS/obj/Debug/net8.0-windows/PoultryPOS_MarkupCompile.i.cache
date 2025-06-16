@@ -4,17 +4,17 @@
 winexe
 C#
 .cs
-C:\Users\Mr. Ahmad\Desktop\kaboom\PoultryPOS\obj\Debug\net8.0-windows\
+C:\Users\Mr. Ahmad\Desktop\kaboom Chicken POS Final V\PoultryPOS\obj\Debug\net8.0-windows\
 PoultryPOS
 none
 false
 TRACE;DEBUG;NET;NET8_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER;WINDOWS7_0_OR_GREATER
-C:\Users\Mr. Ahmad\Desktop\kaboom\PoultryPOS\App.xaml
+C:\Users\Mr. Ahmad\Desktop\kaboom Chicken POS Final V\PoultryPOS\App.xaml
 6268531969
 
 27-10785800
 216339402459
 MainWindow.xaml;Views\CustomersView.xaml;Views\HistoryView.xaml;Views\PaymentsView.xaml;Views\SalesView.xaml;Views\TruckDriverView.xaml;
 
-True
+False
 
