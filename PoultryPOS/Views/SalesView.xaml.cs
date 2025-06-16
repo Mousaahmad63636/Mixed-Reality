@@ -45,6 +45,19 @@ namespace PoultryPOS.Views
             cmbDriver.DisplayMemberPath = "Name";
             cmbDriver.SelectedValuePath = "Id";
         }
+        private void CmbTruck_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (cmbTruck.SelectedValue != null)
+            {
+                var truckId = (int)cmbTruck.SelectedValue;
+                var truck = _truckService.GetById(truckId);
+                if (truck != null && truck.CurrentLoad == 0)
+                {
+                    MessageBox.Show($"الشاحنة '{truck.Name}' لا تحتوي على أقفاص متاحة (الحمولة الحالية: 0)",
+                                  "تحذير", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+        }
 
         private void SetupDataGrid()
         {
@@ -309,6 +322,29 @@ namespace PoultryPOS.Views
             if (cmbTruck.SelectedValue == null)
             {
                 MessageBox.Show("يرجى اختيار شاحنة.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+
+            var truckId = (int)cmbTruck.SelectedValue;
+            var truck = _truckService.GetById(truckId);
+            if (truck == null)
+            {
+                MessageBox.Show("الشاحنة المختارة غير صالحة.", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
+
+            var totalCagesNeeded = _saleItems.Sum(item => item.NumberOfCages);
+            if (truck.CurrentLoad < totalCagesNeeded)
+            {
+                MessageBox.Show($"الشاحنة لا تحتوي على أقفاص كافية. متاح: {truck.CurrentLoad}, مطلوب: {totalCagesNeeded}",
+                              "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+
+            if (truck.CurrentLoad == 0)
+            {
+                MessageBox.Show("لا يمكن إجراء مبيعة من شاحنة فارغة (عدد الأقفاص = 0)",
+                              "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return false;
             }
 

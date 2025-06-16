@@ -103,7 +103,6 @@ namespace PoultryPOS.Views
             var outstandingBalance = customers.Sum(c => c.Balance);
             lblOutstandingBalance.Text = outstandingBalance.ToString("C");
         }
-
         private void FilterTransactions(object sender, SelectionChangedEventArgs e)
         {
             if (_allTransactions == null) return;
@@ -120,10 +119,11 @@ namespace PoultryPOS.Views
                 filteredTransactions = filteredTransactions.Where(t => t.Date.Date <= dpToDate.SelectedDate.Value.Date);
             }
 
+            int? selectedCustomerId = null;
             if (cmbCustomerFilter.SelectedItem is ComboBoxItem customerItem && (int)customerItem.Tag != -1)
             {
-                var customerId = (int)customerItem.Tag;
-                filteredTransactions = filteredTransactions.Where(t => t.CustomerId == customerId);
+                selectedCustomerId = (int)customerItem.Tag;
+                filteredTransactions = filteredTransactions.Where(t => t.CustomerId == selectedCustomerId);
             }
 
             if (cmbTypeFilter.SelectedItem is ComboBoxItem typeItem)
@@ -142,8 +142,30 @@ namespace PoultryPOS.Views
             _filteredTransactions = filteredTransactions.ToList();
             _currentPage = 1;
             UpdatePaginationAndDisplay();
+            UpdateOutstandingBalanceForSelectedCustomer(selectedCustomerId);
         }
 
+        private void UpdateOutstandingBalanceForSelectedCustomer(int? customerId)
+        {
+            if (customerId.HasValue)
+            {
+                var customer = _customerService.GetById(customerId.Value);
+                if (customer != null)
+                {
+                    lblOutstandingBalance.Text = customer.Balance.ToString("C");
+                }
+                else
+                {
+                    lblOutstandingBalance.Text = "$0.00";
+                }
+            }
+            else
+            {
+                var customers = _customerService.GetAll();
+                var totalOutstanding = customers.Sum(c => c.Balance);
+                lblOutstandingBalance.Text = totalOutstanding.ToString("C");
+            }
+        }
         private void UpdatePaginationAndDisplay()
         {
             if (_filteredTransactions == null)
