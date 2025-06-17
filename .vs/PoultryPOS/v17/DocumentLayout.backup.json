@@ -1,10 +1,14 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\Mr. Ahmad\\Desktop\\kaboom Chicken POS Final V\\",
+  "WorkspaceRootPath": "C:\\Users\\Mr. Ahmad\\Desktop\\16- 6 kaboom Chicken POS Final V\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{7451E2F2-1005-461C-904F-855865B11CC9}|PoultryPOS\\PoultryPOS.csproj|c:\\users\\mr. ahmad\\desktop\\kaboom chicken pos final v\\poultrypos\\views\\transactiondetailswindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{7451E2F2-1005-461C-904F-855865B11CC9}|PoultryPOS\\PoultryPOS.csproj|c:\\users\\mr. ahmad\\desktop\\16- 6 kaboom chicken pos final v\\poultrypos\\views\\transactiondetailswindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{7451E2F2-1005-461C-904F-855865B11CC9}|PoultryPOS\\PoultryPOS.csproj|solutionrelative:poultrypos\\views\\transactiondetailswindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7451E2F2-1005-461C-904F-855865B11CC9}|PoultryPOS\\PoultryPOS.csproj|c:\\users\\mr. ahmad\\desktop\\16- 6 kaboom chicken pos final v\\poultrypos\\views\\transactiondetailswindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{7451E2F2-1005-461C-904F-855865B11CC9}|PoultryPOS\\PoultryPOS.csproj|solutionrelative:poultrypos\\views\\transactiondetailswindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
     }
   ],
   "DocumentGroupContainers": [
@@ -20,13 +24,25 @@
               "$type": "Document",
               "DocumentIndex": 0,
               "Title": "TransactionDetailsWindow.xaml.cs",
-              "DocumentMoniker": "C:\\Users\\Mr. Ahmad\\Desktop\\kaboom Chicken POS Final V\\PoultryPOS\\Views\\TransactionDetailsWindow.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\Mr. Ahmad\\Desktop\\16- 6 kaboom Chicken POS Final V\\PoultryPOS\\Views\\TransactionDetailsWindow.xaml.cs",
               "RelativeDocumentMoniker": "PoultryPOS\\Views\\TransactionDetailsWindow.xaml.cs",
-              "ToolTip": "C:\\Users\\Mr. Ahmad\\Desktop\\kaboom Chicken POS Final V\\PoultryPOS\\Views\\TransactionDetailsWindow.xaml.cs",
+              "ToolTip": "C:\\Users\\Mr. Ahmad\\Desktop\\16- 6 kaboom Chicken POS Final V\\PoultryPOS\\Views\\TransactionDetailsWindow.xaml.cs",
               "RelativeToolTip": "PoultryPOS\\Views\\TransactionDetailsWindow.xaml.cs",
-              "ViewState": "AgIAAKkAAAAAAAAAAAAQwOIAAAAJAAAAAAAAAA==",
+              "ViewState": "AgIAAP0CAAAAAAAAAAAgwD0DAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-16T15:52:58.478Z",
+              "WhenOpened": "2025-06-17T14:00:25.77Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "TransactionDetailsWindow.xaml",
+              "DocumentMoniker": "C:\\Users\\Mr. Ahmad\\Desktop\\16- 6 kaboom Chicken POS Final V\\PoultryPOS\\Views\\TransactionDetailsWindow.xaml",
+              "RelativeDocumentMoniker": "PoultryPOS\\Views\\TransactionDetailsWindow.xaml",
+              "ToolTip": "C:\\Users\\Mr. Ahmad\\Desktop\\16- 6 kaboom Chicken POS Final V\\PoultryPOS\\Views\\TransactionDetailsWindow.xaml",
+              "RelativeToolTip": "PoultryPOS\\Views\\TransactionDetailsWindow.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2025-06-17T14:00:05.784Z",
               "EditorCaption": ""
             }
           ]

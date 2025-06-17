@@ -161,10 +161,17 @@
 
                         <StackPanel Grid.Column="0" Margin="0,0,8,0">
                             <TextBlock Text="👤 السادة" FontWeight="Bold" FontSize="12" 
-                                       Foreground="#2C3E50" Margin="0,0,0,5"/>
-                            <ComboBox Name="cmbCustomer" Height="35" SelectionChanged="CmbCustomer_SelectionChanged"/>
+               Foreground="#2C3E50" Margin="0,0,0,5"/>
+                            <TextBox Name="txtCustomerSearch" Height="67" Margin="0,0,0,3"
+             TextChanged="TxtCustomerSearch_TextChanged"
+             Tag="بحث عن العميل..."
+             GotFocus="TxtCustomerSearch_GotFocus"
+             LostFocus="TxtCustomerSearch_LostFocus"
+             Foreground="Gray" FontStyle="Italic"/>
+                            <ComboBox Name="cmbCustomer" Height="35" SelectionChanged="CmbCustomer_SelectionChanged"
+              DropDownOpened="CmbCustomer_DropDownOpened"/>
                             <TextBlock Name="lblCurrentBalance" Text="" FontWeight="Bold" FontSize="10"
-                                       Foreground="#E74C3C" Margin="0,3,0,0" HorizontalAlignment="Center"/>
+               Foreground="#E74C3C" Margin="0,3,0,0" HorizontalAlignment="Center"/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="1" Margin="8,0,8,0">

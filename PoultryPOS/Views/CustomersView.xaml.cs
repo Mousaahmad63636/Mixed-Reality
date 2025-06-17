@@ -14,7 +14,7 @@ namespace PoultryPOS.Views
         private readonly PaymentService _paymentService;
         private readonly SaleService _saleService;
         private Customer _selectedCustomer;
-
+        private List<Customer> _allCustomers;
         public CustomersView()
         {
             InitializeComponent();
@@ -34,7 +34,8 @@ namespace PoultryPOS.Views
 
         private void LoadCustomers()
         {
-            dgCustomers.ItemsSource = _customerService.GetAll();
+            _allCustomers = _customerService.GetAll();
+            dgCustomers.ItemsSource = _allCustomers;
         }
 
         private void LoadPaymentCustomers()
@@ -43,7 +44,6 @@ namespace PoultryPOS.Views
             cmbPaymentCustomer.DisplayMemberPath = "Name";
             cmbPaymentCustomer.SelectedValuePath = "Id";
         }
-
         private void LoadCustomersWithBalance()
         {
             dgCustomersWithBalance.ItemsSource = _customerService.GetAll().Where(c => c.Balance > 0).ToList();
@@ -59,7 +59,37 @@ namespace PoultryPOS.Views
             lblCustomersWithBalance.Text = $"لديهم رصيد: {customersWithBalance.Count}";
             lblTotalBalance.Text = $"إجمالي الرصيد: {totalBalance:C}";
         }
+        private void TxtSearchCustomers_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            FilterCustomers();
+        }
 
+        private void BtnClearSearch_Click(object sender, RoutedEventArgs e)
+        {
+            txtSearchCustomers.Clear();
+            FilterCustomers();
+        }
+
+        private void FilterCustomers()
+        {
+            if (_allCustomers == null) return;
+
+            var searchText = txtSearchCustomers.Text?.Trim().ToLower() ?? "";
+
+            if (string.IsNullOrEmpty(searchText))
+            {
+                dgCustomers.ItemsSource = _allCustomers;
+            }
+            else
+            {
+                var filteredCustomers = _allCustomers.Where(c =>
+                    c.Name.ToLower().Contains(searchText) ||
+                    (c.Phone != null && c.Phone.Contains(searchText)) ||
+                    c.Id.ToString().Contains(searchText)).ToList();
+
+                dgCustomers.ItemsSource = filteredCustomers;
+            }
+        }
         private void DgCustomers_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (dgCustomers.SelectedItem is Customer customer)
@@ -118,7 +148,6 @@ namespace PoultryPOS.Views
                 MessageBox.Show($"خطأ في إضافة العميل: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
         private void BtnUpdateCustomer_Click(object sender, RoutedEventArgs e)
         {
             if (_selectedCustomer == null)
@@ -184,7 +213,6 @@ namespace PoultryPOS.Views
                 }
             }
         }
-
         private void BtnPrintStatement_Click(object sender, RoutedEventArgs e)
         {
             if (_selectedCustomer == null)

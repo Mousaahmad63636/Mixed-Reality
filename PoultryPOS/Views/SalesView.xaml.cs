@@ -16,6 +16,7 @@ namespace PoultryPOS.Views
         private readonly CustomerService _customerService;
         private readonly SaleService _saleService;
         private ObservableCollection<SaleItem> _saleItems;
+        private List<Customer> _allCustomers;
 
         public SalesView()
         {
@@ -25,7 +26,7 @@ namespace PoultryPOS.Views
             _customerService = new CustomerService();
             _saleService = new SaleService();
             _saleItems = new ObservableCollection<SaleItem>();
-
+            SetupCustomerSearch();
             LoadData();
             SetupDataGrid();
             _saleItems.CollectionChanged += SaleItems_CollectionChanged;
@@ -36,7 +37,7 @@ namespace PoultryPOS.Views
             cmbCustomer.ItemsSource = _customerService.GetAll();
             cmbCustomer.DisplayMemberPath = "Name";
             cmbCustomer.SelectedValuePath = "Id";
-
+            _allCustomers = _customerService.GetAll();
             cmbTruck.ItemsSource = _truckService.GetAll();
             cmbTruck.DisplayMemberPath = "Name";
             cmbTruck.SelectedValuePath = "Id";
@@ -194,6 +195,11 @@ namespace PoultryPOS.Views
                 {
                     lblCurrentBalance.Text = "";
                 }
+
+                // Clear search when customer is selected
+                txtCustomerSearch.Text = "بحث عن العميل...";
+                txtCustomerSearch.Foreground = System.Windows.Media.Brushes.Gray;
+                txtCustomerSearch.FontStyle = FontStyles.Italic;
             }
         }
 
@@ -409,6 +415,11 @@ namespace PoultryPOS.Views
             var totalNetWeight = _saleItems.Sum(item => item.NetWeight);
             var invoiceTotal = _saleItems.Sum(item => item.TotalAmount);
 
+            // Get customer's original balance BEFORE updating
+            var customer = _customerService.GetById(customerId);
+            var originalBalance = customer.Balance;
+            var newBalance = originalBalance;
+
             var sale = new Sale
             {
                 CustomerId = customerId,
@@ -431,14 +442,13 @@ namespace PoultryPOS.Views
 
             if (!isPaidNow)
             {
-                var customer = _customerService.GetById(customerId);
-                var newBalance = customer.Balance + invoiceTotal;
+                newBalance = originalBalance + invoiceTotal;
                 _customerService.UpdateBalance(customerId, newBalance);
             }
 
-            PrintInvoiceReceipt(isPaidNow, invoiceTotal, pricePerKg);
+            PrintInvoiceReceipt(isPaidNow, invoiceTotal, pricePerKg, customer, originalBalance, newBalance);
         }
-        private async void PrintInvoiceReceipt(bool isPaidNow, decimal invoiceTotal, decimal pricePerKg)
+        private async void PrintInvoiceReceipt(bool isPaidNow, decimal invoiceTotal, decimal pricePerKg, Customer customer, decimal originalBalance, decimal newBalance)
         {
             try
             {
@@ -446,7 +456,6 @@ namespace PoultryPOS.Views
                 if (printDialog.ShowDialog() != true)
                     return;
 
-                var customer = _customerService.GetById((int)cmbCustomer.SelectedValue);
                 var truck = _truckService.GetAll().First(t => t.Id == (int)cmbTruck.SelectedValue);
                 var driver = _driverService.GetAll().First(d => d.Id == (int)cmbDriver.SelectedValue);
 
@@ -460,7 +469,9 @@ namespace PoultryPOS.Views
                     driver,
                     isPaidNow,
                     invoiceTotal,
-                    pricePerKg);
+                    pricePerKg,
+                    originalBalance,
+                    newBalance);
 
                 printDialog.PrintDocument(
                     ((IDocumentPaginatorSource)flowDocument).DocumentPaginator,
@@ -472,14 +483,16 @@ namespace PoultryPOS.Views
             }
         }
         private FlowDocument CreateInvoiceDocument(
-       PrintDialog printDialog,
-       string invoiceId,
-       Customer customer,
-       Truck truck,
-       Driver driver,
-       bool isPaidNow,
-       decimal invoiceTotal,
-       decimal pricePerKg)
+     PrintDialog printDialog,
+     string invoiceId,
+     Customer customer,
+     Truck truck,
+     Driver driver,
+     bool isPaidNow,
+     decimal invoiceTotal,
+     decimal pricePerKg,
+     decimal originalBalance,
+     decimal newBalance)
         {
             var flowDocument = new FlowDocument
             {
@@ -665,16 +678,13 @@ namespace PoultryPOS.Views
                 balanceTable.Columns.Add(new TableColumn { Width = new GridLength(2, GridUnitType.Star) });
                 balanceTable.RowGroups.Add(new TableRowGroup());
 
-                var previousBalance = customer.Balance;
-                var newBalance = previousBalance + invoiceTotal;
-
                 var balanceHeaderRow = new TableRow();
                 balanceHeaderRow.Cells.Add(CreateCellWithBorder("حساب العميل", FontWeights.Bold, TextAlignment.Center, Brushes.White, Brushes.DarkRed, 2));
                 balanceTable.RowGroups[0].Rows.Add(balanceHeaderRow);
 
                 var prevBalanceRow = new TableRow();
                 prevBalanceRow.Cells.Add(CreateCellWithBorder("الرصيد السابق", FontWeights.Normal, TextAlignment.Right));
-                prevBalanceRow.Cells.Add(CreateCellWithBorder($"{previousBalance:C}", FontWeights.Normal, TextAlignment.Center));
+                prevBalanceRow.Cells.Add(CreateCellWithBorder($"{originalBalance:C}", FontWeights.Normal, TextAlignment.Center));
                 balanceTable.RowGroups[0].Rows.Add(prevBalanceRow);
 
                 var newBalanceRow = new TableRow();
@@ -793,6 +803,83 @@ namespace PoultryPOS.Views
             cmbDriver.SelectedIndex = -1;
             txtPricePerKg.Clear();
             lblCurrentBalance.Text = "";
+
+            // Reset customer search
+            txtCustomerSearch.Text = "بحث عن العميل...";
+            txtCustomerSearch.Foreground = System.Windows.Media.Brushes.Gray;
+            txtCustomerSearch.FontStyle = FontStyles.Italic;
+            cmbCustomer.ItemsSource = _allCustomers;
         }
+
+
+
+
+        private void SetupCustomerSearch()
+        {
+            txtCustomerSearch.Text = "بحث عن العميل...";
+            txtCustomerSearch.Foreground = System.Windows.Media.Brushes.Gray;
+            txtCustomerSearch.FontStyle = FontStyles.Italic;
+        }
+
+        private void TxtCustomerSearch_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (txtCustomerSearch.Foreground == System.Windows.Media.Brushes.Gray)
+                return;
+
+            var searchText = txtCustomerSearch.Text.Trim();
+
+            if (string.IsNullOrEmpty(searchText))
+            {
+                cmbCustomer.ItemsSource = _allCustomers;
+            }
+            else
+            {
+                var filteredCustomers = _allCustomers.Where(c =>
+                    c.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+                    (!string.IsNullOrEmpty(c.Phone) && c.Phone.Contains(searchText))
+                ).ToList();
+
+                cmbCustomer.ItemsSource = filteredCustomers;
+            }
+
+            if (cmbCustomer.Items.Count > 0)
+            {
+                cmbCustomer.IsDropDownOpen = true;
+            }
+        }
+
+        private void TxtCustomerSearch_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (txtCustomerSearch.Text == "بحث عن العميل...")
+            {
+                txtCustomerSearch.Text = "";
+                txtCustomerSearch.Foreground = System.Windows.Media.Brushes.Black;
+                txtCustomerSearch.FontStyle = FontStyles.Normal;
+            }
+        }
+
+        private void TxtCustomerSearch_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(txtCustomerSearch.Text))
+            {
+                txtCustomerSearch.Text = "بحث عن العميل...";
+                txtCustomerSearch.Foreground = System.Windows.Media.Brushes.Gray;
+                txtCustomerSearch.FontStyle = FontStyles.Italic;
+                cmbCustomer.ItemsSource = _allCustomers;
+            }
+        }
+
+        private void CmbCustomer_DropDownOpened(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(txtCustomerSearch.Text) ||
+                txtCustomerSearch.Text == "بحث عن العميل...")
+            {
+                cmbCustomer.ItemsSource = _allCustomers;
+            }
+        }
+
+
+
+
     }
 }

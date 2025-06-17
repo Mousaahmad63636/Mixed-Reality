@@ -181,27 +181,144 @@
 
                         <Border Grid.Column="0" Style="{StaticResource CardStyle}" Margin="0,0,10,0">
                             <StackPanel>
-                                <TextBlock Text="📋 قائمة الزبائن" FontSize="16" FontWeight="Bold" 
-                                           Foreground="#2C3E50" HorizontalAlignment="Center" Margin="0,0,0,15"/>
+                                <Grid Margin="0,0,0,15">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
 
-                                <DataGrid Name="dgCustomers" Height="350" AutoGenerateColumns="False" 
+                                    <TextBlock Grid.Column="0" Text="📋 قائمة الزبائن" FontSize="16" FontWeight="Bold" 
+                                               Foreground="#2C3E50" VerticalAlignment="Center" Margin="0,0,15,0"/>
+
+                                    <TextBox Grid.Column="1" Name="txtSearchCustomers" Height="30" 
+                                             VerticalContentAlignment="Center" Margin="0,0,10,0"
+                                             TextChanged="TxtSearchCustomers_TextChanged">
+                                        <TextBox.Style>
+                                            <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="TextBox">
+                                                            <Border Background="{TemplateBinding Background}" 
+                                                                    BorderBrush="{TemplateBinding BorderBrush}" 
+                                                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                                                    CornerRadius="15">
+                                                                <Grid>
+                                                                    <ScrollViewer x:Name="PART_ContentHost" 
+                                                                                  Margin="30,0,10,0" 
+                                                                                  VerticalAlignment="Center"/>
+                                                                    <TextBlock Text="🔍 البحث عن عميل..." 
+                                                                               Foreground="#999" 
+                                                                               Margin="35,0,0,0" 
+                                                                               VerticalAlignment="Center"
+                                                                               IsHitTestVisible="False">
+                                                                        <TextBlock.Style>
+                                                                            <Style TargetType="TextBlock">
+                                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource AncestorType=TextBox}}" Value="">
+                                                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </TextBlock.Style>
+                                                                    </TextBlock>
+                                                                </Grid>
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </TextBox.Style>
+                                    </TextBox>
+
+                                    <Button Grid.Column="2" Name="btnClearSearch" Content="❌" Width="30" Height="30"
+                                            Background="#E74C3C" Foreground="White" FontWeight="Bold"
+                                            Click="BtnClearSearch_Click" ToolTip="مسح البحث"/>
+                                </Grid>
+
+                                <DataGrid Name="dgCustomers" AutoGenerateColumns="False" 
                                           HeadersVisibility="Column" GridLinesVisibility="Horizontal" 
                                           AlternatingRowBackground="#F8F9FA" Background="White"
-                                          SelectionChanged="DgCustomers_SelectionChanged" FlowDirection="LeftToRight">
+                                          SelectionChanged="DgCustomers_SelectionChanged" FlowDirection="LeftToRight"
+                                          VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                                          CanUserResizeColumns="True" CanUserSortColumns="True">
+                                    <DataGrid.Resources>
+                                        <Style TargetType="DataGridColumnHeader">
+                                            <Setter Property="Background" Value="#34495E"/>
+                                            <Setter Property="Foreground" Value="White"/>
+                                            <Setter Property="FontWeight" Value="Bold"/>
+                                            <Setter Property="FontSize" Value="13"/>
+                                            <Setter Property="Padding" Value="10,8"/>
+                                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                            <Setter Property="BorderBrush" Value="#2C3E50"/>
+                                            <Setter Property="BorderThickness" Value="0,0,1,0"/>
+                                        </Style>
+                                        <Style TargetType="DataGridCell">
+                                            <Setter Property="Padding" Value="8"/>
+                                            <Setter Property="BorderThickness" Value="0"/>
+                                            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                            <Setter Property="VerticalAlignment" Value="Center"/>
+                                        </Style>
+                                        <Style TargetType="DataGridRow">
+                                            <Setter Property="Height" Value="40"/>
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="#ECF0F1"/>
+                                                </Trigger>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter Property="Background" Value="#D5DBDB"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </DataGrid.Resources>
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="اسم العميل" Binding="{Binding Name}" Width="*"/>
-                                        <DataGridTextColumn Header="الهاتف" Binding="{Binding Phone}" Width="120"/>
-                                        <DataGridTextColumn Header="الرصيد" Binding="{Binding Balance, StringFormat=C}" Width="100">
-                                            <DataGridTextColumn.CellStyle>
-                                                <Style TargetType="DataGridCell">
+                                        <DataGridTextColumn Header="الرقم" Binding="{Binding Id}" Width="60">
+                                            <DataGridTextColumn.ElementStyle>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                                    <Setter Property="FontWeight" Value="Bold"/>
+                                                    <Setter Property="Foreground" Value="#2980B9"/>
+                                                </Style>
+                                            </DataGridTextColumn.ElementStyle>
+                                        </DataGridTextColumn>
+                                        <DataGridTextColumn Header="اسم العميل" Binding="{Binding Name}" Width="*" MinWidth="150">
+                                            <DataGridTextColumn.ElementStyle>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                                    <Setter Property="Margin" Value="10,0"/>
+                                                </Style>
+                                            </DataGridTextColumn.ElementStyle>
+                                        </DataGridTextColumn>
+                                        <DataGridTextColumn Header="الهاتف" Binding="{Binding Phone}" Width="120">
+                                            <DataGridTextColumn.ElementStyle>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                                    <Setter Property="Foreground" Value="#27AE60"/>
+                                                </Style>
+                                            </DataGridTextColumn.ElementStyle>
+                                        </DataGridTextColumn>
+                                        <DataGridTextColumn Header="الرصيد" Binding="{Binding Balance, StringFormat=C}" Width="120">
+                                            <DataGridTextColumn.ElementStyle>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                                    <Setter Property="FontWeight" Value="Bold"/>
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding Balance, Converter={x:Static converters:PositiveConverter.Instance}}" Value="True">
-                                                            <Setter Property="Foreground" Value="Red"/>
-                                                            <Setter Property="FontWeight" Value="Bold"/>
+                                                            <Setter Property="Foreground" Value="#E74C3C"/>
+                                                            <Setter Property="Background" Value="#FADBD8"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Balance, Converter={x:Static converters:PositiveConverter.Instance}}" Value="False">
+                                                            <Setter Property="Foreground" Value="#27AE60"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
-                                            </DataGridTextColumn.CellStyle>
+                                            </DataGridTextColumn.ElementStyle>
                                         </DataGridTextColumn>
                                     </DataGrid.Columns>
                                 </DataGrid>
@@ -228,18 +345,48 @@
                                 <TextBlock Text="⚠️ الأرصدة المستحقة" FontSize="14" FontWeight="Bold" 
                                            Foreground="#E74C3C" HorizontalAlignment="Center" Margin="0,0,0,10"/>
 
-                                <DataGrid Name="dgCustomersWithBalance" Height="200" AutoGenerateColumns="False" 
+                                <DataGrid Name="dgCustomersWithBalance" AutoGenerateColumns="False" 
                                           HeadersVisibility="Column" GridLinesVisibility="Horizontal" 
-                                          AlternatingRowBackground="#F8F9FA" FlowDirection="LeftToRight">
+                                          AlternatingRowBackground="#F8F9FA" FlowDirection="LeftToRight"
+                                          VerticalScrollBarVisibility="Auto" MaxHeight="200">
+                                    <DataGrid.Resources>
+                                        <Style TargetType="DataGridColumnHeader">
+                                            <Setter Property="Background" Value="#E74C3C"/>
+                                            <Setter Property="Foreground" Value="White"/>
+                                            <Setter Property="FontWeight" Value="Bold"/>
+                                            <Setter Property="FontSize" Value="12"/>
+                                            <Setter Property="Padding" Value="8,6"/>
+                                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                        </Style>
+                                        <Style TargetType="DataGridCell">
+                                            <Setter Property="Padding" Value="6"/>
+                                            <Setter Property="BorderThickness" Value="0"/>
+                                            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                        </Style>
+                                        <Style TargetType="DataGridRow">
+                                            <Setter Property="Height" Value="35"/>
+                                        </Style>
+                                    </DataGrid.Resources>
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="العميل" Binding="{Binding Name}" Width="*"/>
+                                        <DataGridTextColumn Header="العميل" Binding="{Binding Name}" Width="*" MinWidth="100">
+                                            <DataGridTextColumn.ElementStyle>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                                    <Setter Property="Margin" Value="5,0"/>
+                                                </Style>
+                                            </DataGridTextColumn.ElementStyle>
+                                        </DataGridTextColumn>
                                         <DataGridTextColumn Header="الرصيد" Binding="{Binding Balance, StringFormat=C}" Width="80">
-                                            <DataGridTextColumn.CellStyle>
-                                                <Style TargetType="DataGridCell">
-                                                    <Setter Property="Foreground" Value="Red"/>
+                                            <DataGridTextColumn.ElementStyle>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                                    <Setter Property="Foreground" Value="#E74C3C"/>
                                                     <Setter Property="FontWeight" Value="Bold"/>
                                                 </Style>
-                                            </DataGridTextColumn.CellStyle>
+                                            </DataGridTextColumn.ElementStyle>
                                         </DataGridTextColumn>
                                     </DataGrid.Columns>
                                 </DataGrid>

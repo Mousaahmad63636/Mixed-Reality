@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "Fkci8QnCYuw=",
+  "dgSpecHash": "dhvix4j4tZs=",
   "success": true,
-  "projectFilePath": "C:\\Users\\Mr. Ahmad\\Desktop\\kaboom Chicken POS Final V\\PoultryPOS\\PoultryPOS.csproj",
+  "projectFilePath": "C:\\Users\\Mr. Ahmad\\Desktop\\16- 6 kaboom Chicken POS Final V\\PoultryPOS\\PoultryPOS.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Mr. Ahmad\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\Mr. Ahmad\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",
