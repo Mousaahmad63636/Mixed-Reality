@@ -54,7 +54,8 @@ namespace PoultryPOS.Views
                     TruckName = sale.TruckName,
                     DriverName = sale.DriverName,
                     Notes = $"{sale.NetWeight:F2}كغ @ {sale.PricePerKg:C}/كغ",
-                    CustomerId = sale.CustomerId
+                    CustomerId = sale.CustomerId,
+                    TransactionId = sale.Id
                 });
             }
 
@@ -72,11 +73,24 @@ namespace PoultryPOS.Views
                     TruckName = "-",
                     DriverName = "-",
                     Notes = payment.Notes,
-                    CustomerId = payment.CustomerId
+                    CustomerId = payment.CustomerId,
+                    TransactionId = payment.Id
                 });
             }
 
             _allTransactions = _allTransactions.OrderByDescending(t => t.Date).ToList();
+        }
+
+        private void BtnViewDetails_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.DataContext is Transaction transaction)
+            {
+                var detailsWindow = new TransactionDetailsWindow(transaction.Type, transaction.TransactionId);
+                detailsWindow.ShowDialog();
+
+                LoadData();
+                UpdateSummary();
+            }
         }
 
         private void LoadCustomerFilter()
@@ -381,5 +395,6 @@ namespace PoultryPOS.Views
         public string DriverName { get; set; }
         public string Notes { get; set; }
         public int CustomerId { get; set; }
+        public int TransactionId { get; set; }
     }
 }

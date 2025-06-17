@@ -204,6 +204,15 @@
                         <DataGridTextColumn Header="الشاحنة" Binding="{Binding TruckName}" Width="100"/>
                         <DataGridTextColumn Header="السائق" Binding="{Binding DriverName}" Width="100"/>
                         <DataGridTextColumn Header="ملاحظات" Binding="{Binding Notes}" Width="*"/>
+                        <DataGridTemplateColumn Header="الإجراء" Width="100">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="عرض التفاصيل" Width="90" Height="25" 
+                                            Background="#3498DB" Foreground="White" FontWeight="Bold" FontSize="10"
+                                            Click="BtnViewDetails_Click"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                     </DataGrid.Columns>
                 </DataGrid>
             </StackPanel>

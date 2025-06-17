@@ -13,6 +13,190 @@ namespace PoultryPOS.Services
             _dbService = new DatabaseService();
         }
 
+        public int AddWithItems(Sale sale, List<SaleItem> saleItems)
+        {
+            using var connection = _dbService.GetConnection();
+            connection.Open();
+            using var transaction = connection.BeginTransaction();
+
+            try
+            {
+                var saleCommand = new SqlCommand(@"
+                    INSERT INTO Sales (CustomerId, TruckId, DriverId, GrossWeight, NumberOfCages, 
+                                      CageWeight, NetWeight, PricePerKg, TotalAmount, IsPaidNow, SaleDate) 
+                    VALUES (@CustomerId, @TruckId, @DriverId, @GrossWeight, @NumberOfCages, 
+                            @CageWeight, @NetWeight, @PricePerKg, @TotalAmount, @IsPaidNow, @SaleDate);
+                    SELECT SCOPE_IDENTITY();", connection, transaction);
+
+                saleCommand.Parameters.AddWithValue("@CustomerId", sale.CustomerId);
+                saleCommand.Parameters.AddWithValue("@TruckId", sale.TruckId);
+                saleCommand.Parameters.AddWithValue("@DriverId", sale.DriverId);
+                saleCommand.Parameters.AddWithValue("@GrossWeight", sale.GrossWeight);
+                saleCommand.Parameters.AddWithValue("@NumberOfCages", sale.NumberOfCages);
+                saleCommand.Parameters.AddWithValue("@CageWeight", sale.CageWeight);
+                saleCommand.Parameters.AddWithValue("@NetWeight", sale.NetWeight);
+                saleCommand.Parameters.AddWithValue("@PricePerKg", sale.PricePerKg);
+                saleCommand.Parameters.AddWithValue("@TotalAmount", sale.TotalAmount);
+                saleCommand.Parameters.AddWithValue("@IsPaidNow", sale.IsPaidNow);
+                saleCommand.Parameters.AddWithValue("@SaleDate", sale.SaleDate);
+
+                var saleId = Convert.ToInt32(saleCommand.ExecuteScalar());
+
+                foreach (var item in saleItems)
+                {
+                    var itemCommand = new SqlCommand(@"
+                        INSERT INTO SaleItems (SaleId, GrossWeight, NumberOfCages, SingleCageWeight, 
+                                              TotalCageWeight, NetWeight, TotalAmount)
+                        VALUES (@SaleId, @GrossWeight, @NumberOfCages, @SingleCageWeight, 
+                                @TotalCageWeight, @NetWeight, @TotalAmount)", connection, transaction);
+
+                    itemCommand.Parameters.AddWithValue("@SaleId", saleId);
+                    itemCommand.Parameters.AddWithValue("@GrossWeight", item.GrossWeight);
+                    itemCommand.Parameters.AddWithValue("@NumberOfCages", item.NumberOfCages);
+                    itemCommand.Parameters.AddWithValue("@SingleCageWeight", item.SingleCageWeight);
+                    itemCommand.Parameters.AddWithValue("@TotalCageWeight", item.TotalCageWeight);
+                    itemCommand.Parameters.AddWithValue("@NetWeight", item.NetWeight);
+                    itemCommand.Parameters.AddWithValue("@TotalAmount", item.TotalAmount);
+
+                    itemCommand.ExecuteNonQuery();
+                }
+
+                transaction.Commit();
+                return saleId;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
+
+        public void UpdateWithItems(Sale sale, List<SaleItem> saleItems)
+        {
+            using var connection = _dbService.GetConnection();
+            connection.Open();
+            using var transaction = connection.BeginTransaction();
+
+            try
+            {
+                var updateSaleCommand = new SqlCommand(@"
+                    UPDATE Sales SET CustomerId = @CustomerId, TruckId = @TruckId, DriverId = @DriverId,
+                                    GrossWeight = @GrossWeight, NumberOfCages = @NumberOfCages,
+                                    CageWeight = @CageWeight, NetWeight = @NetWeight, PricePerKg = @PricePerKg,
+                                    TotalAmount = @TotalAmount, IsPaidNow = @IsPaidNow
+                    WHERE Id = @Id", connection, transaction);
+
+                updateSaleCommand.Parameters.AddWithValue("@Id", sale.Id);
+                updateSaleCommand.Parameters.AddWithValue("@CustomerId", sale.CustomerId);
+                updateSaleCommand.Parameters.AddWithValue("@TruckId", sale.TruckId);
+                updateSaleCommand.Parameters.AddWithValue("@DriverId", sale.DriverId);
+                updateSaleCommand.Parameters.AddWithValue("@GrossWeight", sale.GrossWeight);
+                updateSaleCommand.Parameters.AddWithValue("@NumberOfCages", sale.NumberOfCages);
+                updateSaleCommand.Parameters.AddWithValue("@CageWeight", sale.CageWeight);
+                updateSaleCommand.Parameters.AddWithValue("@NetWeight", sale.NetWeight);
+                updateSaleCommand.Parameters.AddWithValue("@PricePerKg", sale.PricePerKg);
+                updateSaleCommand.Parameters.AddWithValue("@TotalAmount", sale.TotalAmount);
+                updateSaleCommand.Parameters.AddWithValue("@IsPaidNow", sale.IsPaidNow);
+
+                updateSaleCommand.ExecuteNonQuery();
+
+                var deleteSaleItemsCommand = new SqlCommand("DELETE FROM SaleItems WHERE SaleId = @SaleId", connection, transaction);
+                deleteSaleItemsCommand.Parameters.AddWithValue("@SaleId", sale.Id);
+                deleteSaleItemsCommand.ExecuteNonQuery();
+
+                foreach (var item in saleItems)
+                {
+                    var itemCommand = new SqlCommand(@"
+                        INSERT INTO SaleItems (SaleId, GrossWeight, NumberOfCages, SingleCageWeight, 
+                                              TotalCageWeight, NetWeight, TotalAmount)
+                        VALUES (@SaleId, @GrossWeight, @NumberOfCages, @SingleCageWeight, 
+                                @TotalCageWeight, @NetWeight, @TotalAmount)", connection, transaction);
+
+                    itemCommand.Parameters.AddWithValue("@SaleId", sale.Id);
+                    itemCommand.Parameters.AddWithValue("@GrossWeight", item.GrossWeight);
+                    itemCommand.Parameters.AddWithValue("@NumberOfCages", item.NumberOfCages);
+                    itemCommand.Parameters.AddWithValue("@SingleCageWeight", item.SingleCageWeight);
+                    itemCommand.Parameters.AddWithValue("@TotalCageWeight", item.TotalCageWeight);
+                    itemCommand.Parameters.AddWithValue("@NetWeight", item.NetWeight);
+                    itemCommand.Parameters.AddWithValue("@TotalAmount", item.TotalAmount);
+
+                    itemCommand.ExecuteNonQuery();
+                }
+
+                transaction.Commit();
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
+
+        public List<SaleItem> GetSaleItems(int saleId)
+        {
+            var items = new List<SaleItem>();
+            using var connection = _dbService.GetConnection();
+            connection.Open();
+
+            var command = new SqlCommand("SELECT * FROM SaleItems WHERE SaleId = @SaleId", connection);
+            command.Parameters.AddWithValue("@SaleId", saleId);
+            using var reader = command.ExecuteReader();
+
+            while (reader.Read())
+            {
+                var item = new SaleItem
+                {
+                    GrossWeight = reader.GetDecimal("GrossWeight"),
+                    NumberOfCages = reader.GetInt32("NumberOfCages"),
+                    SingleCageWeight = reader.GetDecimal("SingleCageWeight")
+                };
+                items.Add(item);
+            }
+
+            return items;
+        }
+
+        public Sale GetSaleById(int saleId)
+        {
+            using var connection = _dbService.GetConnection();
+            connection.Open();
+
+            var command = new SqlCommand(@"
+                SELECT s.*, c.Name as CustomerName, t.Name as TruckName, d.Name as DriverName
+                FROM Sales s
+                JOIN Customers c ON s.CustomerId = c.Id
+                JOIN Trucks t ON s.TruckId = t.Id
+                JOIN Drivers d ON s.DriverId = d.Id
+                WHERE s.Id = @Id", connection);
+
+            command.Parameters.AddWithValue("@Id", saleId);
+            using var reader = command.ExecuteReader();
+
+            if (reader.Read())
+            {
+                return new Sale
+                {
+                    Id = reader.GetInt32("Id"),
+                    CustomerId = reader.GetInt32("CustomerId"),
+                    TruckId = reader.GetInt32("TruckId"),
+                    DriverId = reader.GetInt32("DriverId"),
+                    GrossWeight = reader.GetDecimal("GrossWeight"),
+                    NumberOfCages = reader.GetInt32("NumberOfCages"),
+                    CageWeight = reader.GetDecimal("CageWeight"),
+                    NetWeight = reader.GetDecimal("NetWeight"),
+                    PricePerKg = reader.GetDecimal("PricePerKg"),
+                    TotalAmount = reader.GetDecimal("TotalAmount"),
+                    IsPaidNow = reader.GetBoolean("IsPaidNow"),
+                    SaleDate = reader.GetDateTime("SaleDate"),
+                    CustomerName = reader.GetString("CustomerName"),
+                    TruckName = reader.GetString("TruckName"),
+                    DriverName = reader.GetString("DriverName")
+                };
+            }
+
+            return null;
+        }
+
         public void Add(Sale sale)
         {
             using var connection = _dbService.GetConnection();

@@ -253,3 +253,5 @@ C:\Users\Mr. Ahmad\Desktop\kaboom Chicken POS Final V\PoultryPOS\obj\Debug\net8.
 C:\Users\Mr. Ahmad\Desktop\kaboom Chicken POS Final V\PoultryPOS\obj\Debug\net8.0-windows\PoultryPOS.pdb
 C:\Users\Mr. Ahmad\Desktop\kaboom Chicken POS Final V\PoultryPOS\obj\Debug\net8.0-windows\PoultryPOS.genruntimeconfig.cache
 C:\Users\Mr. Ahmad\Desktop\kaboom Chicken POS Final V\PoultryPOS\obj\Debug\net8.0-windows\ref\PoultryPOS.dll
+C:\Users\Mr. Ahmad\Desktop\kaboom Chicken POS Final V\PoultryPOS\obj\Debug\net8.0-windows\Views\TransactionDetailsWindow.baml
+C:\Users\Mr. Ahmad\Desktop\kaboom Chicken POS Final V\PoultryPOS\obj\Debug\net8.0-windows\Views\TransactionDetailsWindow.g.cs

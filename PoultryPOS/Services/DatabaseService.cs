@@ -24,6 +24,7 @@ namespace PoultryPOS.Services
             CreateDatabaseIfNotExists();
             CreateTablesIfNotExist();
             AddNetWeightColumnIfNotExists();
+            CreateSaleItemsTableIfNotExists();
         }
 
         private void CreateDatabaseIfNotExists()
@@ -116,6 +117,28 @@ namespace PoultryPOS.Services
                 END";
 
             using var command = new SqlCommand(checkColumnScript, connection);
+            command.ExecuteNonQuery();
+        }
+
+        private void CreateSaleItemsTableIfNotExists()
+        {
+            using var connection = GetConnection();
+            connection.Open();
+
+            var createSaleItemsScript = @"
+                IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='SaleItems' AND xtype='U')
+                CREATE TABLE SaleItems (
+                    Id INT IDENTITY(1,1) PRIMARY KEY,
+                    SaleId INT FOREIGN KEY REFERENCES Sales(Id),
+                    GrossWeight DECIMAL(10,2) NOT NULL,
+                    NumberOfCages INT NOT NULL,
+                    SingleCageWeight DECIMAL(10,2) NOT NULL,
+                    TotalCageWeight DECIMAL(10,2) NOT NULL,
+                    NetWeight DECIMAL(10,2) NOT NULL,
+                    TotalAmount DECIMAL(10,2) NOT NULL
+                );";
+
+            using var command = new SqlCommand(createSaleItemsScript, connection);
             command.ExecuteNonQuery();
         }
     }

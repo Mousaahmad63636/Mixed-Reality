@@ -424,7 +424,7 @@ namespace PoultryPOS.Views
                 SaleDate = DateTime.Now
             };
 
-            _saleService.Add(sale);
+            _saleService.AddWithItems(sale, _saleItems.ToList());
 
             _truckService.UpdateCurrentLoad(truckId, totalNumberOfCages);
             _truckService.UpdateNetWeight(truckId, totalNetWeight);
