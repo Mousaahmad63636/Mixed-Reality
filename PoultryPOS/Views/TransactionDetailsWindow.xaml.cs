@@ -24,6 +24,9 @@ namespace PoultryPOS.Views
         private string _transactionType;
         private int _transactionId;
 
+        private int _originalCustomerId;
+        private decimal _originalTotalAmount;
+
         public TransactionDetailsWindow(string transactionType, int transactionId)
         {
             InitializeComponent();
@@ -79,11 +82,23 @@ namespace PoultryPOS.Views
                 return;
             }
 
+            _originalCustomerId = _currentSale.CustomerId;
+            _originalTotalAmount = _currentSale.TotalAmount;
+
             lblTitle.Text = $"تفاصيل المبيعة - فاتورة رقم {_currentSale.Id}";
 
             cmbCustomer.SelectedValue = _currentSale.CustomerId;
-            cmbTruck.SelectedValue = _currentSale.TruckId;
-            cmbDriver.SelectedValue = _currentSale.DriverId;
+
+            if (_currentSale.TruckId > 0)
+                cmbTruck.SelectedValue = _currentSale.TruckId;
+            else
+                cmbTruck.SelectedIndex = -1;
+
+            if (_currentSale.DriverId > 0)
+                cmbDriver.SelectedValue = _currentSale.DriverId;
+            else
+                cmbDriver.SelectedIndex = -1;
+
             txtPricePerKg.Text = _currentSale.PricePerKg.ToString("F2");
 
             var saleItems = _saleService.GetSaleItems(_currentSale.Id);
@@ -105,7 +120,6 @@ namespace PoultryPOS.Views
             spSaleDetails.Visibility = Visibility.Visible;
             spPaymentDetails.Visibility = Visibility.Collapsed;
         }
-
         private void SaleItem_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(SaleItem.TotalAmount))
@@ -753,18 +767,44 @@ namespace PoultryPOS.Views
                     }
                 }
 
-                _currentSale.CustomerId = (int)cmbCustomer.SelectedValue;
-                _currentSale.TruckId = (int)cmbTruck.SelectedValue;
-                _currentSale.DriverId = (int)cmbDriver.SelectedValue;
+                var newCustomerId = (int)cmbCustomer.SelectedValue;
+                var newTotalAmount = _saleItems.Sum(item => item.TotalAmount);
+
+                if (!_currentSale.IsPaidNow)
+                {
+                    if (_originalCustomerId != newCustomerId || _originalTotalAmount != newTotalAmount)
+                    {
+                        var originalCustomer = _customerService.GetById(_originalCustomerId);
+                        if (originalCustomer != null)
+                        {
+                            var updatedOriginalBalance = originalCustomer.Balance - _originalTotalAmount;
+                            _customerService.UpdateBalance(_originalCustomerId, updatedOriginalBalance);
+                        }
+
+                        var newCustomer = _customerService.GetById(newCustomerId);
+                        if (newCustomer != null)
+                        {
+                            var updatedNewBalance = newCustomer.Balance + newTotalAmount;
+                            _customerService.UpdateBalance(newCustomerId, updatedNewBalance);
+                        }
+                    }
+                }
+
+                _currentSale.CustomerId = newCustomerId;
+                _currentSale.TruckId = cmbTruck.SelectedValue == null ? 0 : (int)cmbTruck.SelectedValue;
+                _currentSale.DriverId = cmbDriver.SelectedValue == null ? 0 : (int)cmbDriver.SelectedValue;
                 _currentSale.PricePerKg = pricePerKg;
 
                 _currentSale.GrossWeight = _saleItems.Sum(item => item.GrossWeight);
                 _currentSale.NumberOfCages = _saleItems.Sum(item => item.NumberOfCages);
                 _currentSale.CageWeight = _saleItems.Sum(item => item.TotalCageWeight);
                 _currentSale.NetWeight = _saleItems.Sum(item => item.NetWeight);
-                _currentSale.TotalAmount = _saleItems.Sum(item => item.TotalAmount);
+                _currentSale.TotalAmount = newTotalAmount;
 
                 _saleService.UpdateWithItems(_currentSale, _saleItems.ToList());
+
+                _originalCustomerId = newCustomerId;
+                _originalTotalAmount = newTotalAmount;
 
                 MessageBox.Show("تم حفظ التغييرات بنجاح!", "نجح", MessageBoxButton.OK, MessageBoxImage.Information);
                 BtnEditMode_Click(sender, e);
@@ -783,15 +823,9 @@ namespace PoultryPOS.Views
                 return false;
             }
 
-            if (cmbTruck.SelectedValue == null)
+            if (cmbTruck.SelectedValue != null && cmbDriver.SelectedValue == null)
             {
-                MessageBox.Show("يرجى اختيار شاحنة.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return false;
-            }
-
-            if (cmbDriver.SelectedValue == null)
-            {
-                MessageBox.Show("يرجى اختيار سائق.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("يرجى اختيار سائق عند اختيار شاحنة.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return false;
             }
 
@@ -807,9 +841,23 @@ namespace PoultryPOS.Views
                 return false;
             }
 
+            foreach (var item in _saleItems)
+            {
+                if (item.GrossWeight <= 0)
+                {
+                    MessageBox.Show("يرجى إدخال وزن إجمالي صالح لجميع العناصر.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return false;
+                }
+
+                if (item.NetWeight <= 0)
+                {
+                    MessageBox.Show("يجب أن يكون الوزن الصافي أكبر من الصفر لجميع العناصر.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return false;
+                }
+            }
+
             return true;
         }
-
         private void BtnCancel_Click(object sender, RoutedEventArgs e)
         {
             if (_isEditMode)

@@ -30,14 +30,13 @@
                     <TextBlock Text="العميل:" FontWeight="Bold" Margin="0,0,0,5"/>
                     <ComboBox Name="cmbCustomer" Height="30" IsEnabled="False"/>
                 </StackPanel>
-
                 <StackPanel Grid.Column="1" Margin="0,0,10,0">
-                    <TextBlock Text="الشاحنة:" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <TextBlock Text="الشاحنة (اختياري):" FontWeight="Bold" Margin="0,0,0,5"/>
                     <ComboBox Name="cmbTruck" Height="30" IsEnabled="False"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="2" Margin="0,0,10,0">
-                    <TextBlock Text="السائق:" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <TextBlock Text="السائق (اختياري):" FontWeight="Bold" Margin="0,0,0,5"/>
                     <ComboBox Name="cmbDriver" Height="30" IsEnabled="False"/>
                 </StackPanel>
 

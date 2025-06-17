@@ -25,6 +25,7 @@ namespace PoultryPOS.Services
             CreateTablesIfNotExist();
             AddNetWeightColumnIfNotExists();
             CreateSaleItemsTableIfNotExists();
+            MakeTruckDriverOptional();
         }
 
         private void CreateDatabaseIfNotExists()
@@ -79,11 +80,11 @@ namespace PoultryPOS.Services
                 CREATE TABLE Sales (
                     Id INT IDENTITY(1,1) PRIMARY KEY,
                     CustomerId INT FOREIGN KEY REFERENCES Customers(Id),
-                    TruckId INT FOREIGN KEY REFERENCES Trucks(Id),
-                    DriverId INT FOREIGN KEY REFERENCES Drivers(Id),
+                    TruckId INT NULL,
+                    DriverId INT NULL,
                     GrossWeight DECIMAL(10,2) NOT NULL,
-                    NumberOfCages INT NOT NULL,
-                    CageWeight DECIMAL(10,2) NOT NULL,
+                    NumberOfCages INT DEFAULT 0,
+                    CageWeight DECIMAL(10,2) DEFAULT 0,
                     NetWeight DECIMAL(10,2) NOT NULL,
                     PricePerKg DECIMAL(10,2) NOT NULL,
                     TotalAmount DECIMAL(10,2) NOT NULL,
@@ -131,14 +132,74 @@ namespace PoultryPOS.Services
                     Id INT IDENTITY(1,1) PRIMARY KEY,
                     SaleId INT FOREIGN KEY REFERENCES Sales(Id),
                     GrossWeight DECIMAL(10,2) NOT NULL,
-                    NumberOfCages INT NOT NULL,
-                    SingleCageWeight DECIMAL(10,2) NOT NULL,
-                    TotalCageWeight DECIMAL(10,2) NOT NULL,
+                    NumberOfCages INT DEFAULT 0,
+                    SingleCageWeight DECIMAL(10,2) DEFAULT 0,
+                    TotalCageWeight DECIMAL(10,2) DEFAULT 0,
                     NetWeight DECIMAL(10,2) NOT NULL,
                     TotalAmount DECIMAL(10,2) NOT NULL
                 );";
 
             using var command = new SqlCommand(createSaleItemsScript, connection);
+            command.ExecuteNonQuery();
+        }
+
+        private void MakeTruckDriverOptional()
+        {
+            using var connection = GetConnection();
+            connection.Open();
+
+            var alterScript = @"
+                IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS 
+                          WHERE CONSTRAINT_TYPE = 'FOREIGN KEY' 
+                          AND TABLE_NAME = 'Sales' 
+                          AND CONSTRAINT_NAME LIKE '%TruckId%')
+                BEGIN
+                    DECLARE @ConstraintName NVARCHAR(255)
+                    SELECT @ConstraintName = CONSTRAINT_NAME 
+                    FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS 
+                    WHERE CONSTRAINT_TYPE = 'FOREIGN KEY' 
+                    AND TABLE_NAME = 'Sales' 
+                    AND CONSTRAINT_NAME LIKE '%TruckId%'
+                    
+                    EXEC('ALTER TABLE Sales DROP CONSTRAINT ' + @ConstraintName)
+                    
+                    ALTER TABLE Sales ALTER COLUMN TruckId INT NULL
+                END
+
+                IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS 
+                          WHERE CONSTRAINT_TYPE = 'FOREIGN KEY' 
+                          AND TABLE_NAME = 'Sales' 
+                          AND CONSTRAINT_NAME LIKE '%DriverId%')
+                BEGIN
+                    DECLARE @ConstraintName2 NVARCHAR(255)
+                    SELECT @ConstraintName2 = CONSTRAINT_NAME 
+                    FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS 
+                    WHERE CONSTRAINT_TYPE = 'FOREIGN KEY' 
+                    AND TABLE_NAME = 'Sales' 
+                    AND CONSTRAINT_NAME LIKE '%DriverId%'
+                    
+                    EXEC('ALTER TABLE Sales DROP CONSTRAINT ' + @ConstraintName2)
+                    
+                    ALTER TABLE Sales ALTER COLUMN DriverId INT NULL
+                END
+
+                IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS 
+                              WHERE CONSTRAINT_TYPE = 'FOREIGN KEY' 
+                              AND TABLE_NAME = 'Sales' 
+                              AND CONSTRAINT_NAME = 'FK_Sales_Trucks')
+                BEGIN
+                    ALTER TABLE Sales ADD CONSTRAINT FK_Sales_Trucks FOREIGN KEY (TruckId) REFERENCES Trucks(Id)
+                END
+
+                IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS 
+                              WHERE CONSTRAINT_TYPE = 'FOREIGN KEY' 
+                              AND TABLE_NAME = 'Sales' 
+                              AND CONSTRAINT_NAME = 'FK_Sales_Drivers')
+                BEGIN
+                    ALTER TABLE Sales ADD CONSTRAINT FK_Sales_Drivers FOREIGN KEY (DriverId) REFERENCES Drivers(Id)
+                END";
+
+            using var command = new SqlCommand(alterScript, connection);
             command.ExecuteNonQuery();
         }
     }

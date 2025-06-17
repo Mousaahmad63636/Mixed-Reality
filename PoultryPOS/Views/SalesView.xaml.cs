@@ -325,41 +325,6 @@ namespace PoultryPOS.Views
                 return false;
             }
 
-            if (cmbTruck.SelectedValue == null)
-            {
-                MessageBox.Show("يرجى اختيار شاحنة.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return false;
-            }
-
-            var truckId = (int)cmbTruck.SelectedValue;
-            var truck = _truckService.GetById(truckId);
-            if (truck == null)
-            {
-                MessageBox.Show("الشاحنة المختارة غير صالحة.", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
-                return false;
-            }
-
-            var totalCagesNeeded = _saleItems.Sum(item => item.NumberOfCages);
-            if (truck.CurrentLoad < totalCagesNeeded)
-            {
-                MessageBox.Show($"الشاحنة لا تحتوي على أقفاص كافية. متاح: {truck.CurrentLoad}, مطلوب: {totalCagesNeeded}",
-                              "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return false;
-            }
-
-            if (truck.CurrentLoad == 0)
-            {
-                MessageBox.Show("لا يمكن إجراء مبيعة من شاحنة فارغة (عدد الأقفاص = 0)",
-                              "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return false;
-            }
-
-            if (cmbDriver.SelectedValue == null)
-            {
-                MessageBox.Show("يرجى اختيار سائق.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return false;
-            }
-
             if (!decimal.TryParse(txtPricePerKg.Text, out decimal price) || price <= 0)
             {
                 MessageBox.Show("يرجى إدخال سعر صالح للكيلو.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -372,23 +337,43 @@ namespace PoultryPOS.Views
                 return false;
             }
 
+            if (cmbTruck.SelectedValue != null)
+            {
+                var truckId = (int)cmbTruck.SelectedValue;
+                var truck = _truckService.GetById(truckId);
+                if (truck == null)
+                {
+                    MessageBox.Show("الشاحنة المختارة غير صالحة.", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return false;
+                }
+
+                var totalCagesNeeded = _saleItems.Sum(item => item.NumberOfCages);
+                if (truck.CurrentLoad < totalCagesNeeded && totalCagesNeeded > 0)
+                {
+                    MessageBox.Show($"الشاحنة لا تحتوي على أقفاص كافية. متاح: {truck.CurrentLoad}, مطلوب: {totalCagesNeeded}",
+                                  "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return false;
+                }
+
+                if (truck.CurrentLoad == 0 && totalCagesNeeded > 0)
+                {
+                    MessageBox.Show("لا يمكن إجراء مبيعة من شاحنة فارغة (عدد الأقفاص = 0)",
+                                  "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return false;
+                }
+            }
+
+            if (cmbTruck.SelectedValue != null && cmbDriver.SelectedValue == null)
+            {
+                MessageBox.Show("يرجى اختيار سائق عند اختيار شاحنة.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+
             foreach (var item in _saleItems)
             {
                 if (item.GrossWeight <= 0)
                 {
                     MessageBox.Show("يرجى إدخال وزن إجمالي صالح لجميع العناصر.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return false;
-                }
-
-                if (item.NumberOfCages <= 0)
-                {
-                    MessageBox.Show("يرجى إدخال عدد صالح للأقفاص لجميع العناصر.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return false;
-                }
-
-                if (item.SingleCageWeight <= 0)
-                {
-                    MessageBox.Show("يرجى إدخال وزن صالح للقفص الواحد لجميع العناصر.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return false;
                 }
 
@@ -405,8 +390,8 @@ namespace PoultryPOS.Views
         private void ProcessInvoice(bool isPaidNow)
         {
             var customerId = (int)cmbCustomer.SelectedValue;
-            var truckId = (int)cmbTruck.SelectedValue;
-            var driverId = (int)cmbDriver.SelectedValue;
+            var truckId = cmbTruck.SelectedValue as int?;
+            var driverId = cmbDriver.SelectedValue as int?;
             var pricePerKg = decimal.Parse(txtPricePerKg.Text);
 
             var totalGrossWeight = _saleItems.Sum(item => item.GrossWeight);
@@ -415,7 +400,6 @@ namespace PoultryPOS.Views
             var totalNetWeight = _saleItems.Sum(item => item.NetWeight);
             var invoiceTotal = _saleItems.Sum(item => item.TotalAmount);
 
-            // Get customer's original balance BEFORE updating
             var customer = _customerService.GetById(customerId);
             var originalBalance = customer.Balance;
             var newBalance = originalBalance;
@@ -423,8 +407,8 @@ namespace PoultryPOS.Views
             var sale = new Sale
             {
                 CustomerId = customerId,
-                TruckId = truckId,
-                DriverId = driverId,
+                TruckId = truckId ?? 0,
+                DriverId = driverId ?? 0,
                 GrossWeight = totalGrossWeight,
                 NumberOfCages = totalNumberOfCages,
                 CageWeight = totalCageWeight,
@@ -437,8 +421,11 @@ namespace PoultryPOS.Views
 
             _saleService.AddWithItems(sale, _saleItems.ToList());
 
-            _truckService.UpdateCurrentLoad(truckId, totalNumberOfCages);
-            _truckService.UpdateNetWeight(truckId, totalNetWeight);
+            if (truckId.HasValue && totalNumberOfCages > 0)
+            {
+                _truckService.UpdateCurrentLoad(truckId.Value, totalNumberOfCages);
+                _truckService.UpdateNetWeight(truckId.Value, totalNetWeight);
+            }
 
             if (!isPaidNow)
             {
@@ -446,9 +433,9 @@ namespace PoultryPOS.Views
                 _customerService.UpdateBalance(customerId, newBalance);
             }
 
-            PrintInvoiceReceipt(isPaidNow, invoiceTotal, pricePerKg, customer, originalBalance, newBalance);
+            PrintInvoiceReceipt(isPaidNow, invoiceTotal, pricePerKg, truckId, driverId, customer, originalBalance, newBalance);
         }
-        private async void PrintInvoiceReceipt(bool isPaidNow, decimal invoiceTotal, decimal pricePerKg, Customer customer, decimal originalBalance, decimal newBalance)
+        private async void PrintInvoiceReceipt(bool isPaidNow, decimal invoiceTotal, decimal pricePerKg, int? truckId, int? driverId, Customer customer, decimal originalBalance, decimal newBalance)
         {
             try
             {
@@ -456,8 +443,14 @@ namespace PoultryPOS.Views
                 if (printDialog.ShowDialog() != true)
                     return;
 
-                var truck = _truckService.GetAll().First(t => t.Id == (int)cmbTruck.SelectedValue);
-                var driver = _driverService.GetAll().First(d => d.Id == (int)cmbDriver.SelectedValue);
+                Truck truck = null;
+                Driver driver = null;
+
+                if (truckId.HasValue && truckId.Value > 0)
+                    truck = _truckService.GetAll().FirstOrDefault(t => t.Id == truckId.Value);
+
+                if (driverId.HasValue && driverId.Value > 0)
+                    driver = _driverService.GetAll().FirstOrDefault(d => d.Id == driverId.Value);
 
                 var invoiceId = DateTime.Now.ToString("yyyyMMddHHmmss");
 
@@ -483,16 +476,16 @@ namespace PoultryPOS.Views
             }
         }
         private FlowDocument CreateInvoiceDocument(
-     PrintDialog printDialog,
-     string invoiceId,
-     Customer customer,
-     Truck truck,
-     Driver driver,
-     bool isPaidNow,
-     decimal invoiceTotal,
-     decimal pricePerKg,
-     decimal originalBalance,
-     decimal newBalance)
+       PrintDialog printDialog,
+       string invoiceId,
+       Customer customer,
+       Truck truck,
+       Driver driver,
+       bool isPaidNow,
+       decimal invoiceTotal,
+       decimal pricePerKg,
+       decimal originalBalance,
+       decimal newBalance)
         {
             var flowDocument = new FlowDocument
             {
@@ -571,16 +564,38 @@ namespace PoultryPOS.Views
             {
                 FontWeight = FontWeights.Bold
             });
-            metaInfoParagraph.Inlines.Add(new LineBreak());
-            metaInfoParagraph.Inlines.Add(new Run($"الشاحنة: {truck.Name}")
+
+            if (truck != null || driver != null)
             {
-                FontWeight = FontWeights.Bold
-            });
-            metaInfoParagraph.Inlines.Add(new Run("  |  "));
-            metaInfoParagraph.Inlines.Add(new Run($"السائق: {driver.Name}")
+                metaInfoParagraph.Inlines.Add(new LineBreak());
+                if (truck != null)
+                {
+                    metaInfoParagraph.Inlines.Add(new Run($"الشاحنة: {truck.Name}")
+                    {
+                        FontWeight = FontWeights.Bold
+                    });
+                }
+                if (truck != null && driver != null)
+                {
+                    metaInfoParagraph.Inlines.Add(new Run("  |  "));
+                }
+                if (driver != null)
+                {
+                    metaInfoParagraph.Inlines.Add(new Run($"السائق: {driver.Name}")
+                    {
+                        FontWeight = FontWeights.Bold
+                    });
+                }
+            }
+            else
             {
-                FontWeight = FontWeights.Bold
-            });
+                metaInfoParagraph.Inlines.Add(new LineBreak());
+                metaInfoParagraph.Inlines.Add(new Run("مبيعة مباشرة من المحل")
+                {
+                    FontWeight = FontWeights.Bold,
+                    Foreground = Brushes.DarkGreen
+                });
+            }
 
             flowDocument.Blocks.Add(metaInfoParagraph);
             flowDocument.Blocks.Add(new Paragraph { Margin = new Thickness(0, 10, 0, 10) });
@@ -611,15 +626,18 @@ namespace PoultryPOS.Views
             grossWeightRow.Cells.Add(CreateCellWithBorder($"{totalGrossWeight:F2} كغ", FontWeights.Normal, TextAlignment.Center));
             summaryTable.RowGroups[0].Rows.Add(grossWeightRow);
 
-            var cagesRow = new TableRow();
-            cagesRow.Cells.Add(CreateCellWithBorder("عدد الأقفاص", FontWeights.Normal, TextAlignment.Right));
-            cagesRow.Cells.Add(CreateCellWithBorder($"{totalCages}", FontWeights.Normal, TextAlignment.Center));
-            summaryTable.RowGroups[0].Rows.Add(cagesRow);
+            if (totalCages > 0)
+            {
+                var cagesRow = new TableRow();
+                cagesRow.Cells.Add(CreateCellWithBorder("عدد الأقفاص", FontWeights.Normal, TextAlignment.Right));
+                cagesRow.Cells.Add(CreateCellWithBorder($"{totalCages}", FontWeights.Normal, TextAlignment.Center));
+                summaryTable.RowGroups[0].Rows.Add(cagesRow);
 
-            var cageWeightRow = new TableRow();
-            cageWeightRow.Cells.Add(CreateCellWithBorder("وزن الأقفاص", FontWeights.Normal, TextAlignment.Right));
-            cageWeightRow.Cells.Add(CreateCellWithBorder($"{totalCageWeight:F2} كغ", FontWeights.Normal, TextAlignment.Center));
-            summaryTable.RowGroups[0].Rows.Add(cageWeightRow);
+                var cageWeightRow = new TableRow();
+                cageWeightRow.Cells.Add(CreateCellWithBorder("وزن الأقفاص", FontWeights.Normal, TextAlignment.Right));
+                cageWeightRow.Cells.Add(CreateCellWithBorder($"{totalCageWeight:F2} كغ", FontWeights.Normal, TextAlignment.Center));
+                summaryTable.RowGroups[0].Rows.Add(cageWeightRow);
+            }
 
             var netWeightRow = new TableRow();
             netWeightRow.Cells.Add(CreateCellWithBorder("الوزن الصافي", FontWeights.Normal, TextAlignment.Right));
