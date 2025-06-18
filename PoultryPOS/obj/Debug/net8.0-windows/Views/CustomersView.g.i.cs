@@ -213,7 +213,7 @@ namespace PoultryPOS.Views {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/PoultryPOS;component/views/customersview.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/PoultryPOS;V1.0.0.0;component/views/customersview.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\Views\CustomersView.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

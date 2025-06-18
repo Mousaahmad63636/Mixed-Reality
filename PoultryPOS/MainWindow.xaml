@@ -8,6 +8,7 @@
             <RowDefinition Height="60"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
+        
 
         <Border Grid.Row="0" Background="#2C3E50" Padding="10">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
