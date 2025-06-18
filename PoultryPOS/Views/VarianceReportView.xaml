@@ -1,0 +1,151 @@
+﻿<Page x:Class="PoultryPOS.Views.VarianceReportView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:converters="clr-namespace:PoultryPOS.Converters"
+      Title="تقرير انحراف الأوزان"
+      FlowDirection="RightToLeft">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="#2C3E50" Padding="20" Margin="0,0,0,20">
+            <TextBlock Text="📊 تقرير انحراف أوزان الشاحنات" FontSize="24" FontWeight="Bold" 
+                       Foreground="White" HorizontalAlignment="Center"/>
+        </Border>
+
+        <Border Grid.Row="1" Background="White" BorderBrush="#DDD" BorderThickness="1" Padding="20" Margin="0,0,0,20">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Margin="0,0,20,0">
+                    <TextBlock Text="من تاريخ:" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <DatePicker Name="dpFromDate" Width="120" SelectedDateChanged="FilterVarianceReport"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Margin="0,0,20,0">
+                    <TextBlock Text="إلى تاريخ:" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <DatePicker Name="dpToDate" Width="120" SelectedDateChanged="FilterVarianceReport"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Margin="0,0,20,0">
+                    <TextBlock Text="الشاحنة:" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <ComboBox Name="cmbTruckFilter" Width="150" SelectionChanged="FilterVarianceReport"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="3" Margin="0,0,20,0" VerticalAlignment="Bottom">
+                    <Button Name="btnToday" Content="اليوم" Width="60" Height="25" Background="#1ABC9C" 
+                            Foreground="White" FontWeight="Bold" Click="BtnToday_Click"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="5" VerticalAlignment="Bottom">
+                    <Button Name="btnClearFilter" Content="مسح المرشحات" Width="100" Height="25" Background="#95A5A6" 
+                            Foreground="White" FontWeight="Bold" Click="BtnClearFilter_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="2" Background="White" BorderBrush="#DDD" BorderThickness="1" Padding="20">
+            <StackPanel>
+                <TextBlock Text="📋 جلسات التحميل والانحراف" FontSize="18" FontWeight="Bold" 
+                           Margin="0,0,0,15" HorizontalAlignment="Center"/>
+
+                <DataGrid Name="dgVarianceReport" Height="400" AutoGenerateColumns="False" 
+                          HeadersVisibility="Column" GridLinesVisibility="Horizontal" 
+                          AlternatingRowBackground="#F8F9FA" IsReadOnly="True" FlowDirection="LeftToRight">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="الشاحنة" Binding="{Binding TruckName}" Width="120"/>
+                        <DataGridTextColumn Header="تاريخ التحميل" Binding="{Binding LoadDateDisplay}" Width="120"/>
+                        <DataGridTextColumn Header="تاريخ الإكمال" Binding="{Binding CompletionDateDisplay}" Width="120"/>
+                        <DataGridTextColumn Header="الأقفاص الأولية" Binding="{Binding InitialCages}" Width="100"/>
+                        <DataGridTextColumn Header="الوزن الأولي (كغ)" Binding="{Binding InitialWeight, StringFormat=F2}" Width="120"/>
+                        <DataGridTextColumn Header="الوزن النهائي (كغ)" Binding="{Binding FinalWeight, StringFormat=F2}" Width="120"/>
+                        <DataGridTextColumn Header="الانحراف (كغ)" Binding="{Binding VarianceDisplay}" Width="100">
+                            <DataGridTextColumn.CellStyle>
+                                <Style TargetType="DataGridCell">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding WeightVariance, Converter={x:Static converters:PositiveConverter.Instance}}" Value="True">
+                                            <Setter Property="Foreground" Value="Red"/>
+                                            <Setter Property="FontWeight" Value="Bold"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding WeightVariance, Converter={x:Static converters:PositiveConverter.Instance}}" Value="False">
+                                            <Setter Property="Foreground" Value="Green"/>
+                                            <Setter Property="FontWeight" Value="Bold"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGridTextColumn.CellStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="النسبة %" Binding="{Binding VariancePercentage, StringFormat=F2}" Width="80">
+                            <DataGridTextColumn.CellStyle>
+                                <Style TargetType="DataGridCell">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding VariancePercentage, Converter={x:Static converters:PositiveConverter.Instance}}" Value="True">
+                                            <Setter Property="Foreground" Value="Red"/>
+                                            <Setter Property="FontWeight" Value="Bold"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding VariancePercentage, Converter={x:Static converters:PositiveConverter.Instance}}" Value="False">
+                                            <Setter Property="Foreground" Value="Green"/>
+                                            <Setter Property="FontWeight" Value="Bold"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGridTextColumn.CellStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="الحالة" Binding="{Binding StatusDisplay}" Width="80"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="3" Background="#ECF0F1" Padding="20" Margin="0,20,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Background="#3498DB" Padding="15" Margin="0,0,5,0">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="إجمالي الجلسات" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center"/>
+                        <TextBlock Name="lblTotalSessions" Text="0" Foreground="White" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="1" Background="#27AE60" Padding="15" Margin="5,0,5,0">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="الجلسات المكتملة" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center"/>
+                        <TextBlock Name="lblCompletedSessions" Text="0" Foreground="White" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="2" Background="#E74C3C" Padding="15" Margin="5,0,5,0">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="إجمالي الانحراف (كغ)" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center"/>
+                        <TextBlock Name="lblTotalVariance" Text="0.00" Foreground="White" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="3" Background="#F39C12" Padding="15" Margin="5,0,0,0">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="متوسط الانحراف (كغ)" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center"/>
+                        <TextBlock Name="lblAverageVariance" Text="0.00" Foreground="White" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</Page>

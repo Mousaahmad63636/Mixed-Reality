@@ -10,11 +10,11 @@ none
 false
 TRACE;DEBUG;NET;NET8_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER;WINDOWS7_0_OR_GREATER
 C:\Users\Mr. Ahmad\Desktop\16- 6 kaboom Chicken POS Final V\PoultryPOS\App.xaml
-7-2132909616
+8-1591696036
 
-29-192507002
+32-1952583805
 216339402459
-MainWindow.xaml;Views\CustomersView.xaml;Views\HistoryView.xaml;Views\PaymentsView.xaml;Views\SalesView.xaml;Views\TransactionDetailsWindow.xaml;Views\TruckDriverView.xaml;
+MainWindow.xaml;Views\CustomersView.xaml;Views\HistoryView.xaml;Views\PaymentsView.xaml;Views\SalesView.xaml;Views\TransactionDetailsWindow.xaml;Views\TruckDriverView.xaml;Views\VarianceReportView.xaml;
 
-False
+True
 

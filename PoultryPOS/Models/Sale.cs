@@ -4,8 +4,8 @@
     {
         public int Id { get; set; }
         public int CustomerId { get; set; }
-        public int TruckId { get; set; }
-        public int DriverId { get; set; }
+        public int? TruckId { get; set; }
+        public int? DriverId { get; set; }
         public decimal GrossWeight { get; set; }
         public int NumberOfCages { get; set; }
         public decimal CageWeight { get; set; }

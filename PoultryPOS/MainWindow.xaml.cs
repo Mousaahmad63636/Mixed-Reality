@@ -35,5 +35,10 @@ namespace PoultryPOS
         {
             MainFrame.Navigate(new HistoryView());
         }
+
+        private void BtnVarianceReport_Click(object sender, RoutedEventArgs e)
+        {
+            MainFrame.Navigate(new VarianceReportView());
+        }
     }
 }

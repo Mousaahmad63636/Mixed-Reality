@@ -342,3 +342,5 @@ C:\Users\Mr. Ahmad\Desktop\16- 6 kaboom Chicken POS Final V\PoultryPOS\obj\Debug
 C:\Users\Mr. Ahmad\Desktop\16- 6 kaboom Chicken POS Final V\PoultryPOS\obj\Debug\net8.0-windows\PoultryPOS.pdb
 C:\Users\Mr. Ahmad\Desktop\16- 6 kaboom Chicken POS Final V\PoultryPOS\obj\Debug\net8.0-windows\PoultryPOS.genruntimeconfig.cache
 C:\Users\Mr. Ahmad\Desktop\16- 6 kaboom Chicken POS Final V\PoultryPOS\obj\Debug\net8.0-windows\ref\PoultryPOS.dll
+C:\Users\Mr. Ahmad\Desktop\16- 6 kaboom Chicken POS Final V\PoultryPOS\obj\Debug\net8.0-windows\Views\VarianceReportView.g.cs
+C:\Users\Mr. Ahmad\Desktop\16- 6 kaboom Chicken POS Final V\PoultryPOS\obj\Debug\net8.0-windows\Views\VarianceReportView.baml

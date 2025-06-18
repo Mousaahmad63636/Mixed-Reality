@@ -1,6 +1,7 @@
 ﻿<Page x:Class="PoultryPOS.Views.TruckDriverView"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:converters="clr-namespace:PoultryPOS.Converters"
       Title="الشاحنات والسائقين"
       FlowDirection="RightToLeft">
 
@@ -12,114 +13,163 @@
     </Page.Resources>
 
     <Grid Margin="20">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="20"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
 
-        <Border Grid.Column="0" Background="White" BorderBrush="#DDD" BorderThickness="1" Padding="20">
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="20"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Background="White" BorderBrush="#DDD" BorderThickness="1" Padding="20">
+                <StackPanel>
+                    <TextBlock Text="إدارة الشاحنات" FontSize="20" FontWeight="Bold" Margin="0,0,0,20" HorizontalAlignment="Center"/>
+
+                    <Grid Margin="0,0,0,20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="اسم الشاحنة:" FontWeight="Bold" Margin="0,0,0,5"/>
+                            <TextBox Name="txtTruckName" Height="30" Margin="0,0,0,10"/>
+
+                            <TextBlock Text="رقم اللوحة (اختياري):" FontWeight="Bold" Margin="0,0,0,5"/>
+                            <TextBox Name="txtPlateNumber" Height="30" Margin="0,0,0,10"/>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="الحمولة الحالية (أقفاص):" FontWeight="Bold" Margin="0,0,0,5"/>
+                                    <TextBox Name="txtCurrentLoad" Height="30" Text="0"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="الوزن الصافي (كغ):" FontWeight="Bold" Margin="0,0,0,5"/>
+                                    <TextBox Name="txtNetWeight" Height="30" Text="0"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Margin="10,0,0,0">
+                            <Button Name="btnAddTruck" Content="إضافة" Height="30" Background="#27AE60" 
+                                    Foreground="White" FontWeight="Bold" Click="BtnAddTruck_Click"/>
+                            <Button Name="btnUpdateTruck" Content="تحديث" Height="30" Margin="0,5,0,0" Background="#3498DB" 
+                                    Foreground="White" FontWeight="Bold" Click="BtnUpdateTruck_Click"/>
+                            <Button Name="btnDeleteTruck" Content="حذف" Height="30" Margin="0,5,0,0" Background="#E74C3C" 
+                                    Foreground="White" FontWeight="Bold" Click="BtnDeleteTruck_Click"/>
+                            <Button Name="btnClearTruck" Content="مسح" Height="30" Margin="0,5,0,0" Background="#95A5A6" 
+                                    Foreground="White" FontWeight="Bold" Click="BtnClearTruck_Click"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <DataGrid Name="dgTrucks" Height="350" AutoGenerateColumns="False" 
+                              HeadersVisibility="Column" GridLinesVisibility="Horizontal" 
+                              AlternatingRowBackground="#F8F9FA" SelectionChanged="DgTrucks_SelectionChanged" FlowDirection="LeftToRight">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="الاسم" Binding="{Binding Name}" Width="*"/>
+                            <DataGridTextColumn Header="عدد الاقفاص" Binding="{Binding CurrentLoad}" Width="60"/>
+                            <DataGridTextColumn Header="وزن البضاعة " Binding="{Binding NetWeight, StringFormat=F2}" Width="80"/>
+                            <DataGridTextColumn Header="اللوحة" Binding="{Binding PlateNumber}" Width="100"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="2" Background="White" BorderBrush="#DDD" BorderThickness="1" Padding="20">
+                <StackPanel>
+                    <TextBlock Text="إدارة السائقين" FontSize="20" FontWeight="Bold" Margin="0,0,0,20" HorizontalAlignment="Center"/>
+
+                    <Grid Margin="0,0,0,20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="اسم السائق:" FontWeight="Bold" Margin="0,0,0,5"/>
+                            <TextBox Name="txtDriverName" Height="30" Margin="0,0,0,15"/>
+
+                            <TextBlock Text="رقم الهاتف (اختياري):" FontWeight="Bold" Margin="0,0,0,5"/>
+                            <TextBox Name="txtDriverPhone" Height="30"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Margin="10,0,0,0">
+                            <Button Name="btnAddDriver" Content="إضافة" Height="30" Background="#27AE60" 
+                                    Foreground="White" FontWeight="Bold" Click="BtnAddDriver_Click"/>
+                            <Button Name="btnUpdateDriver" Content="تحديث" Height="30" Margin="0,5,0,0" Background="#3498DB" 
+                                    Foreground="White" FontWeight="Bold" Click="BtnUpdateDriver_Click"/>
+                            <Button Name="btnDeleteDriver" Content="حذف" Height="30" Margin="0,5,0,0" Background="#E74C3C" 
+                                    Foreground="White" FontWeight="Bold" Click="BtnDeleteDriver_Click"/>
+                            <Button Name="btnClearDriver" Content="مسح" Height="30" Margin="0,5,0,0" Background="#95A5A6" 
+                                    Foreground="White" FontWeight="Bold" Click="BtnClearDriver_Click"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <DataGrid Name="dgDrivers" Height="350" AutoGenerateColumns="False" 
+                              HeadersVisibility="Column" GridLinesVisibility="Horizontal" 
+                              AlternatingRowBackground="#F8F9FA" SelectionChanged="DgDrivers_SelectionChanged" FlowDirection="LeftToRight">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="الاسم" Binding="{Binding Name}" Width="*"/>
+                            <DataGridTextColumn Header="الهاتف" Binding="{Binding Phone}" Width="120"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Border Grid.Row="1" Background="White" BorderBrush="#DDD" BorderThickness="1" Padding="15" Margin="0,20,0,0">
             <StackPanel>
-                <TextBlock Text="إدارة الشاحنات" FontSize="20" FontWeight="Bold" Margin="0,0,0,20" HorizontalAlignment="Center"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
+                    <TextBlock Text="📊 سجل انحراف أوزان الشاحنات" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+                    <Button Name="btnViewVariance" Content="عرض التقرير الكامل" Height="25" Width="120" Background="#8E44AD" 
+                            Foreground="White" FontWeight="Bold" Margin="20,0,0,0" Click="BtnViewVariance_Click"/>
+                </StackPanel>
 
-                <Grid Margin="0,0,0,20">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="2*"/>
-                        <ColumnDefinition Width="10"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <StackPanel Grid.Column="0">
-                        <TextBlock Text="اسم الشاحنة:" FontWeight="Bold" Margin="0,0,0,5"/>
-                        <TextBox Name="txtTruckName" Height="30" Margin="0,0,0,10"/>
-
-                        <TextBlock Text="رقم اللوحة (اختياري):" FontWeight="Bold" Margin="0,0,0,5"/>
-                        <TextBox Name="txtPlateNumber" Height="30" Margin="0,0,0,10"/>
-
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="10"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <StackPanel Grid.Column="0">
-                                <TextBlock Text="الحمولة الحالية (أقفاص):" FontWeight="Bold" Margin="0,0,0,5"/>
-                                <TextBox Name="txtCurrentLoad" Height="30" Text="0"/>
-                            </StackPanel>
-
-                            <StackPanel Grid.Column="2">
-                                <TextBlock Text="الوزن الصافي (كغ):" FontWeight="Bold" Margin="0,0,0,5"/>
-                                <TextBox Name="txtNetWeight" Height="30" Text="0"/>
-                            </StackPanel>
-                        </Grid>
-                    </StackPanel>
-
-                    <StackPanel Grid.Column="2" Margin="10,0,0,0">
-                        <Button Name="btnAddTruck" Content="إضافة" Height="30" Background="#27AE60" 
-                                Foreground="White" FontWeight="Bold" Click="BtnAddTruck_Click"/>
-                        <Button Name="btnUpdateTruck" Content="تحديث" Height="30" Margin="0,5,0,0" Background="#3498DB" 
-                                Foreground="White" FontWeight="Bold" Click="BtnUpdateTruck_Click"/>
-                        <Button Name="btnDeleteTruck" Content="حذف" Height="30" Margin="0,5,0,0" Background="#E74C3C" 
-                                Foreground="White" FontWeight="Bold" Click="BtnDeleteTruck_Click"/>
-                        <Button Name="btnClearTruck" Content="مسح" Height="30" Margin="0,5,0,0" Background="#95A5A6" 
-                                Foreground="White" FontWeight="Bold" Click="BtnClearTruck_Click"/>
-                    </StackPanel>
-                </Grid>
-
-                <DataGrid Name="dgTrucks" Height="350" AutoGenerateColumns="False" 
+                <DataGrid Name="dgVarianceHistory" Height="150" AutoGenerateColumns="False" 
                           HeadersVisibility="Column" GridLinesVisibility="Horizontal" 
-                          AlternatingRowBackground="#F8F9FA" SelectionChanged="DgTrucks_SelectionChanged" FlowDirection="LeftToRight">
+                          AlternatingRowBackground="#F8F9FA" IsReadOnly="True" FlowDirection="LeftToRight">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="الاسم" Binding="{Binding Name}" Width="*"/>
-                        <DataGridTextColumn Header="عدد الاقفاص" Binding="{Binding CurrentLoad}" Width="60"/>
-                        <DataGridTextColumn Header="وزن البضاعة " Binding="{Binding NetWeight, StringFormat=F2}" Width="80"/>
-                        <DataGridTextColumn Header="اللوحة" Binding="{Binding PlateNumber}" Width="100"/>
+                        <DataGridTextColumn Header="الشاحنة" Binding="{Binding TruckName}" Width="100"/>
+                        <DataGridTextColumn Header="تاريخ التحميل" Binding="{Binding LoadDateDisplay}" Width="120"/>
+                        <DataGridTextColumn Header="تاريخ الإكمال" Binding="{Binding CompletionDateDisplay}" Width="120"/>
+                        <DataGridTextColumn Header="الوزن الأولي" Binding="{Binding InitialWeight, StringFormat=F2}" Width="80"/>
+                        <DataGridTextColumn Header="الوزن النهائي" Binding="{Binding FinalWeight, StringFormat=F2}" Width="80"/>
+                        <DataGridTextColumn Header="الانحراف" Binding="{Binding VarianceDisplay}" Width="80">
+                            <DataGridTextColumn.CellStyle>
+                                <Style TargetType="DataGridCell">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding WeightVariance, Converter={x:Static converters:PositiveConverter.Instance}}" Value="True">
+                                            <Setter Property="Foreground" Value="Red"/>
+                                            <Setter Property="FontWeight" Value="Bold"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding WeightVariance, Converter={x:Static converters:PositiveConverter.Instance}}" Value="False">
+                                            <Setter Property="Foreground" Value="Green"/>
+                                            <Setter Property="FontWeight" Value="Bold"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGridTextColumn.CellStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="الحالة" Binding="{Binding StatusDisplay}" Width="60"/>
                     </DataGrid.Columns>
                 </DataGrid>
-            </StackPanel>
-        </Border>
 
-        <Border Grid.Column="2" Background="White" BorderBrush="#DDD" BorderThickness="1" Padding="20">
-            <StackPanel>
-                <TextBlock Text="إدارة السائقين" FontSize="20" FontWeight="Bold" Margin="0,0,0,20" HorizontalAlignment="Center"/>
-
-                <Grid Margin="0,0,0,20">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="2*"/>
-                        <ColumnDefinition Width="10"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <StackPanel Grid.Column="0">
-                        <TextBlock Text="اسم السائق:" FontWeight="Bold" Margin="0,0,0,5"/>
-                        <TextBox Name="txtDriverName" Height="30" Margin="0,0,0,15"/>
-
-                        <TextBlock Text="رقم الهاتف (اختياري):" FontWeight="Bold" Margin="0,0,0,5"/>
-                        <TextBox Name="txtDriverPhone" Height="30"/>
-                    </StackPanel>
-
-                    <StackPanel Grid.Column="2" Margin="10,0,0,0">
-                        <Button Name="btnAddDriver" Content="إضافة" Height="30" Background="#27AE60" 
-                                Foreground="White" FontWeight="Bold" Click="BtnAddDriver_Click"/>
-                        <Button Name="btnUpdateDriver" Content="تحديث" Height="30" Margin="0,5,0,0" Background="#3498DB" 
-                                Foreground="White" FontWeight="Bold" Click="BtnUpdateDriver_Click"/>
-                        <Button Name="btnDeleteDriver" Content="حذف" Height="30" Margin="0,5,0,0" Background="#E74C3C" 
-                                Foreground="White" FontWeight="Bold" Click="BtnDeleteDriver_Click"/>
-                        <Button Name="btnClearDriver" Content="مسح" Height="30" Margin="0,5,0,0" Background="#95A5A6" 
-                                Foreground="White" FontWeight="Bold" Click="BtnClearDriver_Click"/>
-                    </StackPanel>
-                </Grid>
-
-                <DataGrid Name="dgDrivers" Height="350" AutoGenerateColumns="False" 
-                          HeadersVisibility="Column" GridLinesVisibility="Horizontal" 
-                          AlternatingRowBackground="#F8F9FA" SelectionChanged="DgDrivers_SelectionChanged" FlowDirection="LeftToRight">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="الاسم" Binding="{Binding Name}" Width="*"/>
-                        <DataGridTextColumn Header="الهاتف" Binding="{Binding Phone}" Width="120"/>
-                    </DataGrid.Columns>
-                </DataGrid>
+                <TextBlock Name="lblVarianceSummary" Text="آخر 10 جلسات | إجمالي الانحراف: 0.00 كغ" 
+                           FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,5,0,0"/>
             </StackPanel>
         </Border>
     </Grid>

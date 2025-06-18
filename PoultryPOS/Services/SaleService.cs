@@ -22,15 +22,15 @@ namespace PoultryPOS.Services
             try
             {
                 var saleCommand = new SqlCommand(@"
-            INSERT INTO Sales (CustomerId, TruckId, DriverId, GrossWeight, NumberOfCages, 
-                              CageWeight, NetWeight, PricePerKg, TotalAmount, IsPaidNow, SaleDate) 
-            VALUES (@CustomerId, @TruckId, @DriverId, @GrossWeight, @NumberOfCages, 
-                    @CageWeight, @NetWeight, @PricePerKg, @TotalAmount, @IsPaidNow, @SaleDate);
-            SELECT SCOPE_IDENTITY();", connection, transaction);
+                    INSERT INTO Sales (CustomerId, TruckId, DriverId, GrossWeight, NumberOfCages, 
+                                      CageWeight, NetWeight, PricePerKg, TotalAmount, IsPaidNow, SaleDate) 
+                    VALUES (@CustomerId, @TruckId, @DriverId, @GrossWeight, @NumberOfCages, 
+                            @CageWeight, @NetWeight, @PricePerKg, @TotalAmount, @IsPaidNow, @SaleDate);
+                    SELECT SCOPE_IDENTITY();", connection, transaction);
 
                 saleCommand.Parameters.AddWithValue("@CustomerId", sale.CustomerId);
-                saleCommand.Parameters.AddWithValue("@TruckId", sale.TruckId == 0 ? (object)DBNull.Value : sale.TruckId);
-                saleCommand.Parameters.AddWithValue("@DriverId", sale.DriverId == 0 ? (object)DBNull.Value : sale.DriverId);
+                saleCommand.Parameters.AddWithValue("@TruckId", sale.TruckId);
+                saleCommand.Parameters.AddWithValue("@DriverId", sale.DriverId);
                 saleCommand.Parameters.AddWithValue("@GrossWeight", sale.GrossWeight);
                 saleCommand.Parameters.AddWithValue("@NumberOfCages", sale.NumberOfCages);
                 saleCommand.Parameters.AddWithValue("@CageWeight", sale.CageWeight);
@@ -45,10 +45,10 @@ namespace PoultryPOS.Services
                 foreach (var item in saleItems)
                 {
                     var itemCommand = new SqlCommand(@"
-                INSERT INTO SaleItems (SaleId, GrossWeight, NumberOfCages, SingleCageWeight, 
-                                      TotalCageWeight, NetWeight, TotalAmount)
-                VALUES (@SaleId, @GrossWeight, @NumberOfCages, @SingleCageWeight, 
-                        @TotalCageWeight, @NetWeight, @TotalAmount)", connection, transaction);
+                        INSERT INTO SaleItems (SaleId, GrossWeight, NumberOfCages, SingleCageWeight, 
+                                              TotalCageWeight, NetWeight, TotalAmount)
+                        VALUES (@SaleId, @GrossWeight, @NumberOfCages, @SingleCageWeight, 
+                                @TotalCageWeight, @NetWeight, @TotalAmount)", connection, transaction);
 
                     itemCommand.Parameters.AddWithValue("@SaleId", saleId);
                     itemCommand.Parameters.AddWithValue("@GrossWeight", item.GrossWeight);
@@ -80,16 +80,16 @@ namespace PoultryPOS.Services
             try
             {
                 var updateSaleCommand = new SqlCommand(@"
-            UPDATE Sales SET CustomerId = @CustomerId, TruckId = @TruckId, DriverId = @DriverId,
-                            GrossWeight = @GrossWeight, NumberOfCages = @NumberOfCages,
-                            CageWeight = @CageWeight, NetWeight = @NetWeight, PricePerKg = @PricePerKg,
-                            TotalAmount = @TotalAmount, IsPaidNow = @IsPaidNow
-            WHERE Id = @Id", connection, transaction);
+                    UPDATE Sales SET CustomerId = @CustomerId, TruckId = @TruckId, DriverId = @DriverId,
+                                    GrossWeight = @GrossWeight, NumberOfCages = @NumberOfCages,
+                                    CageWeight = @CageWeight, NetWeight = @NetWeight, PricePerKg = @PricePerKg,
+                                    TotalAmount = @TotalAmount, IsPaidNow = @IsPaidNow
+                    WHERE Id = @Id", connection, transaction);
 
                 updateSaleCommand.Parameters.AddWithValue("@Id", sale.Id);
                 updateSaleCommand.Parameters.AddWithValue("@CustomerId", sale.CustomerId);
-                updateSaleCommand.Parameters.AddWithValue("@TruckId", sale.TruckId == 0 ? (object)DBNull.Value : sale.TruckId);
-                updateSaleCommand.Parameters.AddWithValue("@DriverId", sale.DriverId == 0 ? (object)DBNull.Value : sale.DriverId);
+                updateSaleCommand.Parameters.AddWithValue("@TruckId", sale.TruckId);
+                updateSaleCommand.Parameters.AddWithValue("@DriverId", sale.DriverId);
                 updateSaleCommand.Parameters.AddWithValue("@GrossWeight", sale.GrossWeight);
                 updateSaleCommand.Parameters.AddWithValue("@NumberOfCages", sale.NumberOfCages);
                 updateSaleCommand.Parameters.AddWithValue("@CageWeight", sale.CageWeight);
@@ -107,10 +107,10 @@ namespace PoultryPOS.Services
                 foreach (var item in saleItems)
                 {
                     var itemCommand = new SqlCommand(@"
-                INSERT INTO SaleItems (SaleId, GrossWeight, NumberOfCages, SingleCageWeight, 
-                                      TotalCageWeight, NetWeight, TotalAmount)
-                VALUES (@SaleId, @GrossWeight, @NumberOfCages, @SingleCageWeight, 
-                        @TotalCageWeight, @NetWeight, @TotalAmount)", connection, transaction);
+                        INSERT INTO SaleItems (SaleId, GrossWeight, NumberOfCages, SingleCageWeight, 
+                                              TotalCageWeight, NetWeight, TotalAmount)
+                        VALUES (@SaleId, @GrossWeight, @NumberOfCages, @SingleCageWeight, 
+                                @TotalCageWeight, @NetWeight, @TotalAmount)", connection, transaction);
 
                     itemCommand.Parameters.AddWithValue("@SaleId", sale.Id);
                     itemCommand.Parameters.AddWithValue("@GrossWeight", item.GrossWeight);
@@ -131,6 +131,7 @@ namespace PoultryPOS.Services
                 throw;
             }
         }
+
         public List<SaleItem> GetSaleItems(int saleId)
         {
             var items = new List<SaleItem>();
@@ -161,13 +162,12 @@ namespace PoultryPOS.Services
             connection.Open();
 
             var command = new SqlCommand(@"
-        SELECT s.*, c.Name as CustomerName, 
-               t.Name as TruckName, d.Name as DriverName
-        FROM Sales s
-        JOIN Customers c ON s.CustomerId = c.Id
-        LEFT JOIN Trucks t ON s.TruckId = t.Id
-        LEFT JOIN Drivers d ON s.DriverId = d.Id
-        WHERE s.Id = @Id", connection);
+                SELECT s.*, c.Name as CustomerName, t.Name as TruckName, d.Name as DriverName
+                FROM Sales s
+                JOIN Customers c ON s.CustomerId = c.Id
+                JOIN Trucks t ON s.TruckId = t.Id
+                JOIN Drivers d ON s.DriverId = d.Id
+                WHERE s.Id = @Id", connection);
 
             command.Parameters.AddWithValue("@Id", saleId);
             using var reader = command.ExecuteReader();
@@ -178,8 +178,8 @@ namespace PoultryPOS.Services
                 {
                     Id = reader.GetInt32("Id"),
                     CustomerId = reader.GetInt32("CustomerId"),
-                    TruckId = reader.IsDBNull("TruckId") ? 0 : reader.GetInt32("TruckId"),
-                    DriverId = reader.IsDBNull("DriverId") ? 0 : reader.GetInt32("DriverId"),
+                    TruckId = reader.GetInt32("TruckId"),
+                    DriverId = reader.GetInt32("DriverId"),
                     GrossWeight = reader.GetDecimal("GrossWeight"),
                     NumberOfCages = reader.GetInt32("NumberOfCages"),
                     CageWeight = reader.GetDecimal("CageWeight"),
@@ -189,13 +189,14 @@ namespace PoultryPOS.Services
                     IsPaidNow = reader.GetBoolean("IsPaidNow"),
                     SaleDate = reader.GetDateTime("SaleDate"),
                     CustomerName = reader.GetString("CustomerName"),
-                    TruckName = reader.IsDBNull("TruckName") ? "مبيعة مباشرة" : reader.GetString("TruckName"),
-                    DriverName = reader.IsDBNull("DriverName") ? "مبيعة مباشرة" : reader.GetString("DriverName")
+                    TruckName = reader.GetString("TruckName"),
+                    DriverName = reader.GetString("DriverName")
                 };
             }
 
             return null;
         }
+
         public void Add(Sale sale)
         {
             using var connection = _dbService.GetConnection();
@@ -229,13 +230,12 @@ namespace PoultryPOS.Services
             connection.Open();
 
             var command = new SqlCommand(@"
-        SELECT s.*, c.Name as CustomerName, 
-               t.Name as TruckName, d.Name as DriverName
-        FROM Sales s
-        JOIN Customers c ON s.CustomerId = c.Id
-        LEFT JOIN Trucks t ON s.TruckId = t.Id
-        LEFT JOIN Drivers d ON s.DriverId = d.Id
-        ORDER BY s.SaleDate DESC", connection);
+                SELECT s.*, c.Name as CustomerName, t.Name as TruckName, d.Name as DriverName
+                FROM Sales s
+                JOIN Customers c ON s.CustomerId = c.Id
+                LEFT JOIN Trucks t ON s.TruckId = t.Id
+                LEFT JOIN Drivers d ON s.DriverId = d.Id
+                ORDER BY s.SaleDate DESC", connection);
 
             using var reader = command.ExecuteReader();
 
@@ -245,8 +245,8 @@ namespace PoultryPOS.Services
                 {
                     Id = reader.GetInt32("Id"),
                     CustomerId = reader.GetInt32("CustomerId"),
-                    TruckId = reader.IsDBNull("TruckId") ? 0 : reader.GetInt32("TruckId"),
-                    DriverId = reader.IsDBNull("DriverId") ? 0 : reader.GetInt32("DriverId"),
+                    TruckId = reader.IsDBNull("TruckId") ? (int?)null : reader.GetInt32("TruckId"),
+                    DriverId = reader.IsDBNull("DriverId") ? (int?)null : reader.GetInt32("DriverId"),
                     GrossWeight = reader.GetDecimal("GrossWeight"),
                     NumberOfCages = reader.GetInt32("NumberOfCages"),
                     CageWeight = reader.GetDecimal("CageWeight"),
@@ -256,13 +256,14 @@ namespace PoultryPOS.Services
                     IsPaidNow = reader.GetBoolean("IsPaidNow"),
                     SaleDate = reader.GetDateTime("SaleDate"),
                     CustomerName = reader.GetString("CustomerName"),
-                    TruckName = reader.IsDBNull("TruckName") ? "مبيعة مباشرة" : reader.GetString("TruckName"),
-                    DriverName = reader.IsDBNull("DriverName") ? "مبيعة مباشرة" : reader.GetString("DriverName")
+                    TruckName = reader.IsDBNull("TruckName") ? null : reader.GetString("TruckName"),
+                    DriverName = reader.IsDBNull("DriverName") ? null : reader.GetString("DriverName")
                 });
             }
 
             return sales;
         }
+
         public List<Sale> GetByDateRange(DateTime fromDate, DateTime toDate)
         {
             var sales = new List<Sale>();
@@ -270,14 +271,13 @@ namespace PoultryPOS.Services
             connection.Open();
 
             var command = new SqlCommand(@"
-        SELECT s.*, c.Name as CustomerName, 
-               t.Name as TruckName, d.Name as DriverName
-        FROM Sales s
-        JOIN Customers c ON s.CustomerId = c.Id
-        LEFT JOIN Trucks t ON s.TruckId = t.Id
-        LEFT JOIN Drivers d ON s.DriverId = d.Id
-        WHERE s.SaleDate >= @FromDate AND s.SaleDate <= @ToDate
-        ORDER BY s.SaleDate DESC", connection);
+                SELECT s.*, c.Name as CustomerName, t.Name as TruckName, d.Name as DriverName
+                FROM Sales s
+                JOIN Customers c ON s.CustomerId = c.Id
+                LEFT JOIN Trucks t ON s.TruckId = t.Id
+                LEFT JOIN Drivers d ON s.DriverId = d.Id
+                WHERE s.SaleDate >= @FromDate AND s.SaleDate <= @ToDate
+                ORDER BY s.SaleDate DESC", connection);
 
             command.Parameters.AddWithValue("@FromDate", fromDate.Date);
             command.Parameters.AddWithValue("@ToDate", toDate.Date.AddDays(1).AddSeconds(-1));
@@ -290,8 +290,8 @@ namespace PoultryPOS.Services
                 {
                     Id = reader.GetInt32("Id"),
                     CustomerId = reader.GetInt32("CustomerId"),
-                    TruckId = reader.IsDBNull("TruckId") ? 0 : reader.GetInt32("TruckId"),
-                    DriverId = reader.IsDBNull("DriverId") ? 0 : reader.GetInt32("DriverId"),
+                    TruckId = reader.IsDBNull("TruckId") ? (int?)null : reader.GetInt32("TruckId"),
+                    DriverId = reader.IsDBNull("DriverId") ? (int?)null : reader.GetInt32("DriverId"),
                     GrossWeight = reader.GetDecimal("GrossWeight"),
                     NumberOfCages = reader.GetInt32("NumberOfCages"),
                     CageWeight = reader.GetDecimal("CageWeight"),
@@ -301,13 +301,14 @@ namespace PoultryPOS.Services
                     IsPaidNow = reader.GetBoolean("IsPaidNow"),
                     SaleDate = reader.GetDateTime("SaleDate"),
                     CustomerName = reader.GetString("CustomerName"),
-                    TruckName = reader.IsDBNull("TruckName") ? "مبيعة مباشرة" : reader.GetString("TruckName"),
-                    DriverName = reader.IsDBNull("DriverName") ? "مبيعة مباشرة" : reader.GetString("DriverName")
+                    TruckName = reader.IsDBNull("TruckName") ? null : reader.GetString("TruckName"),
+                    DriverName = reader.IsDBNull("DriverName") ? null : reader.GetString("DriverName")
                 });
             }
 
             return sales;
         }
+
         public decimal GetTotalSales()
         {
             using var connection = _dbService.GetConnection();

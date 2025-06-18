@@ -25,6 +25,7 @@ namespace PoultryPOS.Services
             CreateTablesIfNotExist();
             AddNetWeightColumnIfNotExists();
             CreateSaleItemsTableIfNotExists();
+            CreateTruckLoadingSessionsTableIfNotExists();
             MakeTruckDriverOptional();
         }
 
@@ -140,6 +141,29 @@ namespace PoultryPOS.Services
                 );";
 
             using var command = new SqlCommand(createSaleItemsScript, connection);
+            command.ExecuteNonQuery();
+        }
+
+        private void CreateTruckLoadingSessionsTableIfNotExists()
+        {
+            using var connection = GetConnection();
+            connection.Open();
+
+            var createTruckLoadingSessionsScript = @"
+                IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='TruckLoadingSessions' AND xtype='U')
+                CREATE TABLE TruckLoadingSessions (
+                    Id INT IDENTITY(1,1) PRIMARY KEY,
+                    TruckId INT FOREIGN KEY REFERENCES Trucks(Id),
+                    LoadDate DATETIME NOT NULL,
+                    InitialCages INT NOT NULL,
+                    InitialWeight DECIMAL(10,2) NOT NULL,
+                    CompletionDate DATETIME NULL,
+                    FinalWeight DECIMAL(10,2) NULL,
+                    WeightVariance DECIMAL(10,2) NULL,
+                    IsCompleted BIT DEFAULT 0
+                );";
+
+            using var command = new SqlCommand(createTruckLoadingSessionsScript, connection);
             command.ExecuteNonQuery();
         }
 

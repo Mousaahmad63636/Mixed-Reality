@@ -3,8 +3,8 @@
   "WorkspaceRootPath": "C:\\Users\\Mr. Ahmad\\Desktop\\16- 6 kaboom Chicken POS Final V\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{7451E2F2-1005-461C-904F-855865B11CC9}|PoultryPOS\\PoultryPOS.csproj|c:\\users\\mr. ahmad\\desktop\\16- 6 kaboom chicken pos final v\\poultrypos\\views\\salesview.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{7451E2F2-1005-461C-904F-855865B11CC9}|PoultryPOS\\PoultryPOS.csproj|solutionrelative:poultrypos\\views\\salesview.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{7451E2F2-1005-461C-904F-855865B11CC9}|PoultryPOS\\PoultryPOS.csproj|c:\\users\\mr. ahmad\\desktop\\16- 6 kaboom chicken pos final v\\poultrypos\\services\\truckservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7451E2F2-1005-461C-904F-855865B11CC9}|PoultryPOS\\PoultryPOS.csproj|solutionrelative:poultrypos\\services\\truckservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -19,14 +19,14 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "SalesView.xaml.cs",
-              "DocumentMoniker": "C:\\Users\\Mr. Ahmad\\Desktop\\16- 6 kaboom Chicken POS Final V\\PoultryPOS\\Views\\SalesView.xaml.cs",
-              "RelativeDocumentMoniker": "PoultryPOS\\Views\\SalesView.xaml.cs",
-              "ToolTip": "C:\\Users\\Mr. Ahmad\\Desktop\\16- 6 kaboom Chicken POS Final V\\PoultryPOS\\Views\\SalesView.xaml.cs",
-              "RelativeToolTip": "PoultryPOS\\Views\\SalesView.xaml.cs",
-              "ViewState": "AgIAAKYCAAAAAAAAAAAIwM8CAAAvAAAAAAAAAA==",
+              "Title": "TruckService.cs",
+              "DocumentMoniker": "C:\\Users\\Mr. Ahmad\\Desktop\\16- 6 kaboom Chicken POS Final V\\PoultryPOS\\Services\\TruckService.cs",
+              "RelativeDocumentMoniker": "PoultryPOS\\Services\\TruckService.cs",
+              "ToolTip": "C:\\Users\\Mr. Ahmad\\Desktop\\16- 6 kaboom Chicken POS Final V\\PoultryPOS\\Services\\TruckService.cs",
+              "RelativeToolTip": "PoultryPOS\\Services\\TruckService.cs",
+              "ViewState": "AgIAAJwAAAAAAAAAAAAIwNAAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-17T15:47:13.159Z",
+              "WhenOpened": "2025-06-17T20:08:13.348Z",
               "EditorCaption": ""
             }
           ]

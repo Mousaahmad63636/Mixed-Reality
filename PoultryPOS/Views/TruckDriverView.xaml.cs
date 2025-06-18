@@ -9,6 +9,7 @@ namespace PoultryPOS.Views
     {
         private readonly TruckService _truckService;
         private readonly DriverService _driverService;
+        private readonly TruckLoadingSessionService _loadingSessionService;
         private Truck _selectedTruck;
         private Driver _selectedDriver;
 
@@ -17,7 +18,9 @@ namespace PoultryPOS.Views
             InitializeComponent();
             _truckService = new TruckService();
             _driverService = new DriverService();
+            _loadingSessionService = new TruckLoadingSessionService();
             LoadData();
+            LoadVarianceHistory();
         }
 
         private void LoadData()
@@ -34,6 +37,17 @@ namespace PoultryPOS.Views
         private void LoadDrivers()
         {
             dgDrivers.ItemsSource = _driverService.GetAll();
+        }
+
+        private void LoadVarianceHistory()
+        {
+            var recentSessions = _loadingSessionService.GetAllSessions().Take(10).ToList();
+            dgVarianceHistory.ItemsSource = recentSessions;
+
+            var completedSessions = recentSessions.Where(s => s.IsCompleted).ToList();
+            var totalVariance = completedSessions.Sum(s => s.WeightVariance ?? 0);
+
+            lblVarianceSummary.Text = $"آخر {recentSessions.Count} جلسات | إجمالي الانحراف: {totalVariance:F2} كغ";
         }
 
         private void DgTrucks_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -89,7 +103,7 @@ namespace PoultryPOS.Views
                 };
 
                 _truckService.Add(truck);
-                LoadTrucks();
+                LoadData();
                 ClearTruckForm();
                 MessageBox.Show("تم إضافة الشاحنة بنجاح!", "نجح", MessageBoxButton.OK, MessageBoxImage.Information);
             }
@@ -127,13 +141,24 @@ namespace PoultryPOS.Views
 
             try
             {
-                _selectedTruck.Name = txtTruckName.Text.Trim();
-                _selectedTruck.PlateNumber = string.IsNullOrWhiteSpace(txtPlateNumber.Text) ? null : txtPlateNumber.Text.Trim();
-                _selectedTruck.CurrentLoad = currentLoad;
-                _selectedTruck.NetWeight = netWeight;
+                var currentTruck = _truckService.GetById(_selectedTruck.Id);
 
-                _truckService.Update(_selectedTruck);
-                LoadTrucks();
+                if (currentTruck.CurrentLoad == 0 && currentLoad > 0 && netWeight > 0)
+                {
+                    _truckService.StartLoadingSession(_selectedTruck.Id, currentLoad, netWeight);
+                    MessageBox.Show("تم بدء جلسة تحميل جديدة تلقائياً!", "جلسة تحميل", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    _selectedTruck.Name = txtTruckName.Text.Trim();
+                    _selectedTruck.PlateNumber = string.IsNullOrWhiteSpace(txtPlateNumber.Text) ? null : txtPlateNumber.Text.Trim();
+                    _selectedTruck.CurrentLoad = currentLoad;
+                    _selectedTruck.NetWeight = netWeight;
+                    _truckService.Update(_selectedTruck);
+                }
+
+                LoadData();
+                LoadVarianceHistory();
                 ClearTruckForm();
                 MessageBox.Show("تم تحديث الشاحنة بنجاح!", "نجح", MessageBoxButton.OK, MessageBoxImage.Information);
             }
@@ -159,7 +184,7 @@ namespace PoultryPOS.Views
                 try
                 {
                     _truckService.Delete(_selectedTruck.Id);
-                    LoadTrucks();
+                    LoadData();
                     ClearTruckForm();
                     MessageBox.Show("تم حذف الشاحنة بنجاح!", "نجح", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
@@ -202,7 +227,7 @@ namespace PoultryPOS.Views
                 };
 
                 _driverService.Add(driver);
-                LoadDrivers();
+                LoadData();
                 ClearDriverForm();
                 MessageBox.Show("تم إضافة السائق بنجاح!", "نجح", MessageBoxButton.OK, MessageBoxImage.Information);
             }
@@ -232,7 +257,7 @@ namespace PoultryPOS.Views
                 _selectedDriver.Phone = string.IsNullOrWhiteSpace(txtDriverPhone.Text) ? null : txtDriverPhone.Text.Trim();
 
                 _driverService.Update(_selectedDriver);
-                LoadDrivers();
+                LoadData();
                 ClearDriverForm();
                 MessageBox.Show("تم تحديث السائق بنجاح!", "نجح", MessageBoxButton.OK, MessageBoxImage.Information);
             }
@@ -258,7 +283,7 @@ namespace PoultryPOS.Views
                 try
                 {
                     _driverService.Delete(_selectedDriver.Id);
-                    LoadDrivers();
+                    LoadData();
                     ClearDriverForm();
                     MessageBox.Show("تم حذف السائق بنجاح!", "نجح", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
@@ -280,6 +305,12 @@ namespace PoultryPOS.Views
             txtDriverPhone.Clear();
             _selectedDriver = null;
             dgDrivers.SelectedItem = null;
+        }
+
+        private void BtnViewVariance_Click(object sender, RoutedEventArgs e)
+        {
+            var mainWindow = Application.Current.MainWindow as MainWindow;
+            mainWindow?.MainFrame.Navigate(new VarianceReportView());
         }
     }
 }

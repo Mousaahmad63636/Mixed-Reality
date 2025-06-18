@@ -161,27 +161,25 @@
 
                         <StackPanel Grid.Column="0" Margin="0,0,8,0">
                             <TextBlock Text="👤 السادة" FontWeight="Bold" FontSize="12" 
-               Foreground="#2C3E50" Margin="0,0,0,5"/>
-                            <TextBox Name="txtCustomerSearch" Height="67" Margin="0,0,0,3"
-             TextChanged="TxtCustomerSearch_TextChanged"
-             Tag="بحث عن العميل..."
-             GotFocus="TxtCustomerSearch_GotFocus"
-             LostFocus="TxtCustomerSearch_LostFocus"
-             Foreground="Gray" FontStyle="Italic"/>
+                                       Foreground="#2C3E50" Margin="0,0,0,5"/>
+                            <TextBox Name="txtCustomerSearch" Height="30" Margin="0,0,0,5" 
+                                     TextChanged="TxtCustomerSearch_TextChanged"
+                                     GotFocus="TxtCustomerSearch_GotFocus" 
+                                     LostFocus="TxtCustomerSearch_LostFocus"/>
                             <ComboBox Name="cmbCustomer" Height="35" SelectionChanged="CmbCustomer_SelectionChanged"
-              DropDownOpened="CmbCustomer_DropDownOpened"/>
+                                      DropDownOpened="CmbCustomer_DropDownOpened"/>
                             <TextBlock Name="lblCurrentBalance" Text="" FontWeight="Bold" FontSize="10"
-               Foreground="#E74C3C" Margin="0,3,0,0" HorizontalAlignment="Center"/>
+                                       Foreground="#E74C3C" Margin="0,3,0,0" HorizontalAlignment="Center"/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="1" Margin="8,0,8,0">
-                            <TextBlock Text="🚛 الشاحنة (اختياري)" FontWeight="Bold" FontSize="12" 
+                            <TextBlock Text="🚛 الشاحنة" FontWeight="Bold" FontSize="12" 
                                        Foreground="#2C3E50" Margin="0,0,0,5"/>
-                            <ComboBox Name="cmbTruck" Height="35"/>
+                            <ComboBox Name="cmbTruck" Height="35" SelectionChanged="CmbTruck_SelectionChanged"/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="2" Margin="8,0,8,0">
-                            <TextBlock Text="👨‍💼 السائق (اختياري)" FontWeight="Bold" FontSize="12" 
+                            <TextBlock Text="👨‍💼 السائق" FontWeight="Bold" FontSize="12" 
                                        Foreground="#2C3E50" Margin="0,0,0,5"/>
                             <ComboBox Name="cmbDriver" Height="35"/>
                         </StackPanel>
@@ -227,7 +225,8 @@
                                   HeadersVisibility="Column" GridLinesVisibility="Horizontal" 
                                   AlternatingRowBackground="#FAFBFC" Background="White"
                                   RowHeight="45" FontSize="12" Margin="1"
-                                  CellEditEnding="DgSaleItems_CellEditEnding" FlowDirection="LeftToRight">
+                                  CellEditEnding="DgSaleItems_CellEditEnding" 
+                                  KeyDown="DgSaleItems_KeyDown" FlowDirection="LeftToRight">
                             <DataGrid.Resources>
                                 <Style TargetType="DataGridColumnHeader">
                                     <Setter Property="Background" Value="#34495E"/>

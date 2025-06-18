@@ -7,10 +7,12 @@ namespace PoultryPOS.Services
     public class TruckService
     {
         private readonly DatabaseService _dbService;
+        private readonly TruckLoadingSessionService _loadingSessionService;
 
         public TruckService()
         {
             _dbService = new DatabaseService();
+            _loadingSessionService = new TruckLoadingSessionService();
         }
 
         public List<Truck> GetAll()
@@ -72,9 +74,15 @@ namespace PoultryPOS.Services
             using var connection = _dbService.GetConnection();
             connection.Open();
 
-            var command = new SqlCommand("UPDATE Trucks SET CurrentLoad = CurrentLoad - @CagesUsed WHERE Id = @Id", connection);
+            var getCurrentLoadCommand = new SqlCommand("SELECT CurrentLoad FROM Trucks WHERE Id = @Id", connection);
+            getCurrentLoadCommand.Parameters.AddWithValue("@Id", truckId);
+            var currentLoad = (int)getCurrentLoadCommand.ExecuteScalar();
+
+            var newLoad = currentLoad - cagesUsed;
+
+            var command = new SqlCommand("UPDATE Trucks SET CurrentLoad = @NewLoad WHERE Id = @Id", connection);
             command.Parameters.AddWithValue("@Id", truckId);
-            command.Parameters.AddWithValue("@CagesUsed", cagesUsed);
+            command.Parameters.AddWithValue("@NewLoad", Math.Max(0, newLoad));
 
             command.ExecuteNonQuery();
         }
@@ -89,6 +97,78 @@ namespace PoultryPOS.Services
             command.Parameters.AddWithValue("@WeightUsed", weightUsed);
 
             command.ExecuteNonQuery();
+        }
+
+        public void UpdateTruckFromSale(int truckId, int cagesUsed, decimal weightUsed)
+        {
+            using var connection = _dbService.GetConnection();
+            connection.Open();
+
+            var getCurrentDataCommand = new SqlCommand("SELECT CurrentLoad, NetWeight FROM Trucks WHERE Id = @Id", connection);
+            getCurrentDataCommand.Parameters.AddWithValue("@Id", truckId);
+
+            using var reader = getCurrentDataCommand.ExecuteReader();
+            int currentLoad = 0;
+            decimal currentWeight = 0;
+
+            if (reader.Read())
+            {
+                currentLoad = reader.GetInt32("CurrentLoad");
+                currentWeight = reader.GetDecimal("NetWeight");
+            }
+            reader.Close();
+
+            var newLoad = Math.Max(0, currentLoad - cagesUsed);
+            var newWeight = currentWeight - weightUsed;
+
+            var updateCommand = new SqlCommand("UPDATE Trucks SET CurrentLoad = @NewLoad, NetWeight = @NewWeight WHERE Id = @Id", connection);
+            updateCommand.Parameters.AddWithValue("@Id", truckId);
+            updateCommand.Parameters.AddWithValue("@NewLoad", newLoad);
+            updateCommand.Parameters.AddWithValue("@NewWeight", newWeight);
+            updateCommand.ExecuteNonQuery();
+
+            if (newLoad <= 0)
+            {
+                CheckAndCompleteLoadingSession(truckId, newWeight);
+            }
+        }
+
+        private void CheckAndCompleteLoadingSession(int truckId, decimal finalWeight)
+        {
+            var activeSession = _loadingSessionService.GetActiveSessionByTruckId(truckId);
+            if (activeSession != null)
+            {
+                _loadingSessionService.CompleteLoadingSession(truckId, finalWeight);
+            }
+        }
+
+        public void StartLoadingSession(int truckId, int initialCages, decimal initialWeight)
+        {
+            var existingSession = _loadingSessionService.GetActiveSessionByTruckId(truckId);
+            if (existingSession != null)
+            {
+                throw new InvalidOperationException($"الشاحنة لديها جلسة تحميل نشطة بالفعل. يجب إنهاء الجلسة الحالية أولاً.");
+            }
+
+            using var connection = _dbService.GetConnection();
+            connection.Open();
+
+            var updateTruckCommand = new SqlCommand("UPDATE Trucks SET CurrentLoad = @CurrentLoad, NetWeight = @NetWeight WHERE Id = @Id", connection);
+            updateTruckCommand.Parameters.AddWithValue("@Id", truckId);
+            updateTruckCommand.Parameters.AddWithValue("@CurrentLoad", initialCages);
+            updateTruckCommand.Parameters.AddWithValue("@NetWeight", initialWeight);
+            updateTruckCommand.ExecuteNonQuery();
+
+            var session = new TruckLoadingSession
+            {
+                TruckId = truckId,
+                LoadDate = DateTime.Now,
+                InitialCages = initialCages,
+                InitialWeight = initialWeight,
+                IsCompleted = false
+            };
+
+            _loadingSessionService.StartLoadingSession(session);
         }
 
         public Truck GetById(int id)

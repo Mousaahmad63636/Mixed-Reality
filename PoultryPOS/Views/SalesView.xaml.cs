@@ -196,7 +196,6 @@ namespace PoultryPOS.Views
                     lblCurrentBalance.Text = "";
                 }
 
-                // Clear search when customer is selected
                 txtCustomerSearch.Text = "بحث عن العميل...";
                 txtCustomerSearch.Foreground = System.Windows.Media.Brushes.Gray;
                 txtCustomerSearch.FontStyle = FontStyles.Italic;
@@ -225,22 +224,18 @@ namespace PoultryPOS.Views
                         item.UpdatePrice(price);
                     }
 
-                    // Check if this is the last editable column (SingleCageWeight - column index 2)
-                    // and if this is the last row
                     var currentRowIndex = dgSaleItems.Items.IndexOf(e.Row.Item);
                     var isLastRow = currentRowIndex == dgSaleItems.Items.Count - 1;
-                    var isLastEditableColumn = e.Column.DisplayIndex == 2; // SingleCageWeight column
+                    var isLastEditableColumn = e.Column.DisplayIndex == 2;
 
                     if (isLastRow && isLastEditableColumn)
                     {
-                        // Add new row automatically
                         var newItem = new SaleItem();
                         if (decimal.TryParse(txtPricePerKg.Text, out decimal priceForNew))
                         {
                             newItem.UpdatePrice(priceForNew);
                         }
 
-                        // Apply default cage weight if set
                         if (!string.IsNullOrWhiteSpace(txtSingleCageWeight.Text) &&
                             decimal.TryParse(txtSingleCageWeight.Text, out decimal cageWeight))
                         {
@@ -249,7 +244,6 @@ namespace PoultryPOS.Views
 
                         _saleItems.Add(newItem);
 
-                        // Focus the new row after a short delay
                         Dispatcher.BeginInvoke(new Action(() =>
                         {
                             dgSaleItems.SelectedIndex = dgSaleItems.Items.Count - 1;
@@ -407,8 +401,8 @@ namespace PoultryPOS.Views
             var sale = new Sale
             {
                 CustomerId = customerId,
-                TruckId = truckId ?? 0,
-                DriverId = driverId ?? 0,
+                TruckId = truckId,
+                DriverId = driverId,
                 GrossWeight = totalGrossWeight,
                 NumberOfCages = totalNumberOfCages,
                 CageWeight = totalCageWeight,
@@ -421,10 +415,9 @@ namespace PoultryPOS.Views
 
             _saleService.AddWithItems(sale, _saleItems.ToList());
 
-            if (truckId.HasValue && totalNumberOfCages > 0)
+            if (truckId.HasValue)
             {
-                _truckService.UpdateCurrentLoad(truckId.Value, totalNumberOfCages);
-                _truckService.UpdateNetWeight(truckId.Value, totalNetWeight);
+                _truckService.UpdateTruckFromSale(truckId.Value, totalNumberOfCages, totalNetWeight);
             }
 
             if (!isPaidNow)
@@ -435,6 +428,7 @@ namespace PoultryPOS.Views
 
             PrintInvoiceReceipt(isPaidNow, invoiceTotal, pricePerKg, truckId, driverId, customer, originalBalance, newBalance);
         }
+
         private async void PrintInvoiceReceipt(bool isPaidNow, decimal invoiceTotal, decimal pricePerKg, int? truckId, int? driverId, Customer customer, decimal originalBalance, decimal newBalance)
         {
             try
@@ -822,15 +816,11 @@ namespace PoultryPOS.Views
             txtPricePerKg.Clear();
             lblCurrentBalance.Text = "";
 
-            // Reset customer search
             txtCustomerSearch.Text = "بحث عن العميل...";
             txtCustomerSearch.Foreground = System.Windows.Media.Brushes.Gray;
             txtCustomerSearch.FontStyle = FontStyles.Italic;
             cmbCustomer.ItemsSource = _allCustomers;
         }
-
-
-
 
         private void SetupCustomerSearch()
         {
@@ -841,7 +831,7 @@ namespace PoultryPOS.Views
 
         private void TxtCustomerSearch_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (txtCustomerSearch.Foreground == System.Windows.Media.Brushes.Gray)
+            if (_allCustomers == null || txtCustomerSearch.Foreground == System.Windows.Media.Brushes.Gray)
                 return;
 
             var searchText = txtCustomerSearch.Text.Trim();
@@ -883,21 +873,20 @@ namespace PoultryPOS.Views
                 txtCustomerSearch.Text = "بحث عن العميل...";
                 txtCustomerSearch.Foreground = System.Windows.Media.Brushes.Gray;
                 txtCustomerSearch.FontStyle = FontStyles.Italic;
-                cmbCustomer.ItemsSource = _allCustomers;
+                if (_allCustomers != null)
+                {
+                    cmbCustomer.ItemsSource = _allCustomers;
+                }
             }
         }
 
         private void CmbCustomer_DropDownOpened(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtCustomerSearch.Text) ||
-                txtCustomerSearch.Text == "بحث عن العميل...")
+            if (_allCustomers != null &&
+                (string.IsNullOrWhiteSpace(txtCustomerSearch.Text) || txtCustomerSearch.Text == "بحث عن العميل..."))
             {
                 cmbCustomer.ItemsSource = _allCustomers;
             }
         }
-
-
-
-
     }
 }

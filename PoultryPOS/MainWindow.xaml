@@ -26,6 +26,9 @@
                 <Button Name="btnHistory" Content="HISTORY" Width="120" Height="40" Margin="5" 
                         Background="#E74C3C" Foreground="White" BorderBrush="Transparent" 
                         FontWeight="Bold" Click="BtnHistory_Click"/>
+                <Button Name="btnVarianceReport" Content="VARIANCE REPORT" Width="140" Height="40" Margin="5" 
+                        Background="#8E44AD" Foreground="White" BorderBrush="Transparent" 
+                        FontWeight="Bold" Click="BtnVarianceReport_Click"/>
             </StackPanel>
         </Border>
 

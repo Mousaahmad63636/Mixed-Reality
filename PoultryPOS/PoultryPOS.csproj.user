@@ -20,5 +20,8 @@
     <Compile Update="Views\TruckDriverView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\VarianceReportView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
 </Project>
