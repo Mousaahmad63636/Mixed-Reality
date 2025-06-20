@@ -331,32 +331,6 @@ namespace PoultryPOS.Views
                 return false;
             }
 
-            if (cmbTruck.SelectedValue != null)
-            {
-                var truckId = (int)cmbTruck.SelectedValue;
-                var truck = _truckService.GetById(truckId);
-                if (truck == null)
-                {
-                    MessageBox.Show("الشاحنة المختارة غير صالحة.", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return false;
-                }
-
-                var totalCagesNeeded = _saleItems.Sum(item => item.NumberOfCages);
-                if (truck.CurrentLoad < totalCagesNeeded && totalCagesNeeded > 0)
-                {
-                    MessageBox.Show($"الشاحنة لا تحتوي على أقفاص كافية. متاح: {truck.CurrentLoad}, مطلوب: {totalCagesNeeded}",
-                                  "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return false;
-                }
-
-                if (truck.CurrentLoad == 0 && totalCagesNeeded > 0)
-                {
-                    MessageBox.Show("لا يمكن إجراء مبيعة من شاحنة فارغة (عدد الأقفاص = 0)",
-                                  "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return false;
-                }
-            }
-
             if (cmbTruck.SelectedValue != null && cmbDriver.SelectedValue == null)
             {
                 MessageBox.Show("يرجى اختيار سائق عند اختيار شاحنة.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -393,6 +367,39 @@ namespace PoultryPOS.Views
             var totalCageWeight = _saleItems.Sum(item => item.TotalCageWeight);
             var totalNetWeight = _saleItems.Sum(item => item.NetWeight);
             var invoiceTotal = _saleItems.Sum(item => item.TotalAmount);
+
+            if (truckId.HasValue)
+            {
+                var truck = _truckService.GetById(truckId.Value);
+                if (truck != null)
+                {
+                    if (totalNetWeight > truck.NetWeight && truck.NetWeight > 0)
+                    {
+                        var overage = totalNetWeight - truck.NetWeight;
+                        var result = MessageBox.Show(
+                            $"تحذير: المبيعة تتجاوز الوزن المتاح في الشاحنة بمقدار {overage:F2} كغ\n" +
+                            $"متاح: {truck.NetWeight:F2} كغ | مطلوب: {totalNetWeight:F2} كغ\n\n" +
+                            "هل تريد المتابعة؟ سيتم تسجيل انحراف سالب.",
+                            "تجاوز في الوزن", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+                        if (result == MessageBoxResult.No)
+                            return;
+                    }
+
+                    if (totalNumberOfCages > truck.CurrentLoad && truck.CurrentLoad > 0)
+                    {
+                        var overage = totalNumberOfCages - truck.CurrentLoad;
+                        var result = MessageBox.Show(
+                            $"تحذير: المبيعة تتجاوز الأقفاص المتاحة بمقدار {overage} قفص\n" +
+                            $"متاح: {truck.CurrentLoad} أقفاص | مطلوب: {totalNumberOfCages} أقفاص\n\n" +
+                            "هل تريد المتابعة؟",
+                            "تجاوز في الأقفاص", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+                        if (result == MessageBoxResult.No)
+                            return;
+                    }
+                }
+            }
 
             var customer = _customerService.GetById(customerId);
             var originalBalance = customer.Balance;
