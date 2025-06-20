@@ -173,13 +173,13 @@
                         </StackPanel>
 
                         <StackPanel Grid.Column="1" Margin="8,0,8,0">
-                            <TextBlock Text="🚛 الشاحنة" FontWeight="Bold" FontSize="12" 
+                            <TextBlock Text="🚛 الشاحنة (اختياري)" FontWeight="Bold" FontSize="12" 
                                        Foreground="#2C3E50" Margin="0,0,0,5"/>
                             <ComboBox Name="cmbTruck" Height="35" SelectionChanged="CmbTruck_SelectionChanged"/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="2" Margin="8,0,8,0">
-                            <TextBlock Text="👨‍💼 السائق" FontWeight="Bold" FontSize="12" 
+                            <TextBlock Text="👨‍💼 السائق (اختياري)" FontWeight="Bold" FontSize="12" 
                                        Foreground="#2C3E50" Margin="0,0,0,5"/>
                             <ComboBox Name="cmbDriver" Height="35"/>
                         </StackPanel>

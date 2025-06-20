@@ -51,11 +51,15 @@ namespace PoultryPOS.Views
             cmbCustomer.DisplayMemberPath = "Name";
             cmbCustomer.SelectedValuePath = "Id";
 
-            cmbTruck.ItemsSource = _truckService.GetAll();
+            var trucks = new List<object> { new { Id = (int?)null, Name = "بدون شاحنة" } };
+            trucks.AddRange(_truckService.GetAll().Select(t => new { Id = (int?)t.Id, Name = t.Name }));
+            cmbTruck.ItemsSource = trucks;
             cmbTruck.DisplayMemberPath = "Name";
             cmbTruck.SelectedValuePath = "Id";
 
-            cmbDriver.ItemsSource = _driverService.GetAll();
+            var drivers = new List<object> { new { Id = (int?)null, Name = "بدون سائق" } };
+            drivers.AddRange(_driverService.GetAll().Select(d => new { Id = (int?)d.Id, Name = d.Name }));
+            cmbDriver.ItemsSource = drivers;
             cmbDriver.DisplayMemberPath = "Name";
             cmbDriver.SelectedValuePath = "Id";
         }
@@ -89,15 +93,15 @@ namespace PoultryPOS.Views
 
             cmbCustomer.SelectedValue = _currentSale.CustomerId;
 
-            if (_currentSale.TruckId > 0)
-                cmbTruck.SelectedValue = _currentSale.TruckId;
+            if (_currentSale.TruckId.HasValue && _currentSale.TruckId.Value > 0)
+                cmbTruck.SelectedValue = _currentSale.TruckId.Value;
             else
-                cmbTruck.SelectedIndex = -1;
+                cmbTruck.SelectedIndex = 0;
 
-            if (_currentSale.DriverId > 0)
-                cmbDriver.SelectedValue = _currentSale.DriverId;
+            if (_currentSale.DriverId.HasValue && _currentSale.DriverId.Value > 0)
+                cmbDriver.SelectedValue = _currentSale.DriverId.Value;
             else
-                cmbDriver.SelectedIndex = -1;
+                cmbDriver.SelectedIndex = 0;
 
             txtPricePerKg.Text = _currentSale.PricePerKg.ToString("F2");
 
@@ -120,6 +124,7 @@ namespace PoultryPOS.Views
             spSaleDetails.Visibility = Visibility.Visible;
             spPaymentDetails.Visibility = Visibility.Collapsed;
         }
+
         private void SaleItem_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(SaleItem.TotalAmount))
@@ -172,8 +177,14 @@ namespace PoultryPOS.Views
                     return;
 
                 var customer = _customerService.GetById(_currentSale.CustomerId);
-                var truck = _truckService.GetAll().First(t => t.Id == _currentSale.TruckId);
-                var driver = _driverService.GetAll().First(d => d.Id == _currentSale.DriverId);
+
+                Truck truck = null;
+                if (_currentSale.TruckId.HasValue)
+                    truck = _truckService.GetAll().FirstOrDefault(t => t.Id == _currentSale.TruckId.Value);
+
+                Driver driver = null;
+                if (_currentSale.DriverId.HasValue)
+                    driver = _driverService.GetAll().FirstOrDefault(d => d.Id == _currentSale.DriverId.Value);
 
                 var currentBalance = customer.Balance;
                 var originalBalance = _currentSale.IsPaidNow ? currentBalance : currentBalance - _currentSale.TotalAmount;
@@ -327,16 +338,38 @@ namespace PoultryPOS.Views
             {
                 FontWeight = FontWeights.Bold
             });
-            metaInfoParagraph.Inlines.Add(new LineBreak());
-            metaInfoParagraph.Inlines.Add(new Run($"الشاحنة: {truck.Name}")
+
+            if (truck != null || driver != null)
             {
-                FontWeight = FontWeights.Bold
-            });
-            metaInfoParagraph.Inlines.Add(new Run("  |  "));
-            metaInfoParagraph.Inlines.Add(new Run($"السائق: {driver.Name}")
+                metaInfoParagraph.Inlines.Add(new LineBreak());
+                if (truck != null)
+                {
+                    metaInfoParagraph.Inlines.Add(new Run($"الشاحنة: {truck.Name}")
+                    {
+                        FontWeight = FontWeights.Bold
+                    });
+                }
+                if (truck != null && driver != null)
+                {
+                    metaInfoParagraph.Inlines.Add(new Run("  |  "));
+                }
+                if (driver != null)
+                {
+                    metaInfoParagraph.Inlines.Add(new Run($"السائق: {driver.Name}")
+                    {
+                        FontWeight = FontWeights.Bold
+                    });
+                }
+            }
+            else
             {
-                FontWeight = FontWeights.Bold
-            });
+                metaInfoParagraph.Inlines.Add(new LineBreak());
+                metaInfoParagraph.Inlines.Add(new Run("مبيعة مباشرة من المحل")
+                {
+                    FontWeight = FontWeights.Bold,
+                    Foreground = Brushes.DarkGreen
+                });
+            }
 
             flowDocument.Blocks.Add(metaInfoParagraph);
             flowDocument.Blocks.Add(new Paragraph { Margin = new Thickness(0, 10, 0, 10) });
@@ -388,32 +421,6 @@ namespace PoultryPOS.Views
             summaryTable.RowGroups[0].Rows.Add(totalRow);
 
             flowDocument.Blocks.Add(summaryTable);
-            flowDocument.Blocks.Add(new Paragraph { Margin = new Thickness(0, 15, 0, 10) });
-
-            var paymentStatusParagraph = new Paragraph
-            {
-                TextAlignment = TextAlignment.Center,
-                Margin = new Thickness(0, 10, 0, 10),
-                BorderBrush = Brushes.Gray,
-                BorderThickness = new Thickness(1),
-                Padding = new Thickness(10),
-                Background = isPaidNow ? Brushes.LightGreen : Brushes.LightCoral
-            };
-
-            paymentStatusParagraph.Inlines.Add(new Run("حالة الدفع:")
-            {
-                FontSize = 16,
-                FontWeight = FontWeights.Bold
-            });
-            paymentStatusParagraph.Inlines.Add(new Run(" "));
-            paymentStatusParagraph.Inlines.Add(new Run(isPaidNow ? "مدفوع نقداً" : "مضاف للحساب")
-            {
-                FontSize = 16,
-                FontWeight = FontWeights.Bold,
-                Foreground = isPaidNow ? Brushes.DarkGreen : Brushes.DarkRed
-            });
-
-            flowDocument.Blocks.Add(paymentStatusParagraph);
 
             if (!isPaidNow)
             {
@@ -770,6 +777,22 @@ namespace PoultryPOS.Views
                 var newCustomerId = (int)cmbCustomer.SelectedValue;
                 var newTotalAmount = _saleItems.Sum(item => item.TotalAmount);
 
+                int? newTruckId = null;
+                if (cmbTruck.SelectedValue is int selectedTruckId)
+                {
+                    newTruckId = selectedTruckId;
+                }
+
+                int? newDriverId = null;
+                if (cmbDriver.SelectedValue is int selectedDriverId)
+                {
+                    newDriverId = selectedDriverId;
+                }
+
+                var originalTruckId = _currentSale.TruckId;
+                var totalNumberOfCages = _saleItems.Sum(item => item.NumberOfCages);
+                var totalNetWeight = _saleItems.Sum(item => item.NetWeight);
+
                 if (!_currentSale.IsPaidNow)
                 {
                     if (_originalCustomerId != newCustomerId || _originalTotalAmount != newTotalAmount)
@@ -791,8 +814,8 @@ namespace PoultryPOS.Views
                 }
 
                 _currentSale.CustomerId = newCustomerId;
-                _currentSale.TruckId = cmbTruck.SelectedValue == null ? 0 : (int)cmbTruck.SelectedValue;
-                _currentSale.DriverId = cmbDriver.SelectedValue == null ? 0 : (int)cmbDriver.SelectedValue;
+                _currentSale.TruckId = newTruckId;
+                _currentSale.DriverId = newDriverId;
                 _currentSale.PricePerKg = pricePerKg;
 
                 _currentSale.GrossWeight = _saleItems.Sum(item => item.GrossWeight);
@@ -802,6 +825,65 @@ namespace PoultryPOS.Views
                 _currentSale.TotalAmount = newTotalAmount;
 
                 _saleService.UpdateWithItems(_currentSale, _saleItems.ToList());
+
+                if (originalTruckId != newTruckId)
+                {
+                    if (originalTruckId.HasValue)
+                    {
+                        var originalTruck = _truckService.GetById(originalTruckId.Value);
+                        if (originalTruck != null)
+                        {
+                            var restoredCages = originalTruck.CurrentLoad + totalNumberOfCages;
+                            var restoredWeight = originalTruck.NetWeight + totalNetWeight;
+
+                            var updatedOriginalTruck = new Truck
+                            {
+                                Id = originalTruck.Id,
+                                Name = originalTruck.Name,
+                                CurrentLoad = restoredCages,
+                                NetWeight = restoredWeight,
+                                PlateNumber = originalTruck.PlateNumber,
+                                IsActive = originalTruck.IsActive
+                            };
+                            _truckService.Update(updatedOriginalTruck);
+                        }
+                    }
+
+                    if (newTruckId.HasValue)
+                    {
+                        var newTruck = _truckService.GetById(newTruckId.Value);
+                        if (newTruck != null)
+                        {
+                            if (totalNetWeight > newTruck.NetWeight && newTruck.NetWeight > 0)
+                            {
+                                var overage = totalNetWeight - newTruck.NetWeight;
+                                var result = MessageBox.Show(
+                                    $"تحذير: المبيعة تتجاوز الوزن المتاح في الشاحنة بمقدار {overage:F2} كغ\n" +
+                                    $"متاح: {newTruck.NetWeight:F2} كغ | مطلوب: {totalNetWeight:F2} كغ\n\n" +
+                                    "هل تريد المتابعة؟ سيتم تسجيل انحراف سالب.",
+                                    "تجاوز في الوزن", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+                                if (result == MessageBoxResult.No)
+                                    return;
+                            }
+
+                            if (totalNumberOfCages > newTruck.CurrentLoad && newTruck.CurrentLoad > 0)
+                            {
+                                var overage = totalNumberOfCages - newTruck.CurrentLoad;
+                                var result = MessageBox.Show(
+                                    $"تحذير: المبيعة تتجاوز الأقفاص المتاحة بمقدار {overage} قفص\n" +
+                                    $"متاح: {newTruck.CurrentLoad} أقفاص | مطلوب: {totalNumberOfCages} أقفاص\n\n" +
+                                    "هل تريد المتابعة؟",
+                                    "تجاوز في الأقفاص", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+                                if (result == MessageBoxResult.No)
+                                    return;
+                            }
+
+                            _truckService.UpdateTruckFromSale(newTruckId.Value, totalNumberOfCages, totalNetWeight);
+                        }
+                    }
+                }
 
                 _originalCustomerId = newCustomerId;
                 _originalTotalAmount = newTotalAmount;
@@ -814,18 +896,11 @@ namespace PoultryPOS.Views
                 MessageBox.Show($"خطأ في حفظ التغييرات: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
         private bool ValidateData()
         {
             if (cmbCustomer.SelectedValue == null)
             {
                 MessageBox.Show("يرجى اختيار عميل.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return false;
-            }
-
-            if (cmbTruck.SelectedValue != null && cmbDriver.SelectedValue == null)
-            {
-                MessageBox.Show("يرجى اختيار سائق عند اختيار شاحنة.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return false;
             }
 
@@ -858,6 +933,7 @@ namespace PoultryPOS.Views
 
             return true;
         }
+
         private void BtnCancel_Click(object sender, RoutedEventArgs e)
         {
             if (_isEditMode)

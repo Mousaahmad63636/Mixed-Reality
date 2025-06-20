@@ -29,8 +29,8 @@ namespace PoultryPOS.Services
                     SELECT SCOPE_IDENTITY();", connection, transaction);
 
                 saleCommand.Parameters.AddWithValue("@CustomerId", sale.CustomerId);
-                saleCommand.Parameters.AddWithValue("@TruckId", sale.TruckId);
-                saleCommand.Parameters.AddWithValue("@DriverId", sale.DriverId);
+                saleCommand.Parameters.AddWithValue("@TruckId", sale.TruckId ?? (object)DBNull.Value);
+                saleCommand.Parameters.AddWithValue("@DriverId", sale.DriverId ?? (object)DBNull.Value);
                 saleCommand.Parameters.AddWithValue("@GrossWeight", sale.GrossWeight);
                 saleCommand.Parameters.AddWithValue("@NumberOfCages", sale.NumberOfCages);
                 saleCommand.Parameters.AddWithValue("@CageWeight", sale.CageWeight);
@@ -88,8 +88,8 @@ namespace PoultryPOS.Services
 
                 updateSaleCommand.Parameters.AddWithValue("@Id", sale.Id);
                 updateSaleCommand.Parameters.AddWithValue("@CustomerId", sale.CustomerId);
-                updateSaleCommand.Parameters.AddWithValue("@TruckId", sale.TruckId);
-                updateSaleCommand.Parameters.AddWithValue("@DriverId", sale.DriverId);
+                updateSaleCommand.Parameters.AddWithValue("@TruckId", sale.TruckId ?? (object)DBNull.Value);
+                updateSaleCommand.Parameters.AddWithValue("@DriverId", sale.DriverId ?? (object)DBNull.Value);
                 updateSaleCommand.Parameters.AddWithValue("@GrossWeight", sale.GrossWeight);
                 updateSaleCommand.Parameters.AddWithValue("@NumberOfCages", sale.NumberOfCages);
                 updateSaleCommand.Parameters.AddWithValue("@CageWeight", sale.CageWeight);
@@ -165,8 +165,8 @@ namespace PoultryPOS.Services
                 SELECT s.*, c.Name as CustomerName, t.Name as TruckName, d.Name as DriverName
                 FROM Sales s
                 JOIN Customers c ON s.CustomerId = c.Id
-                JOIN Trucks t ON s.TruckId = t.Id
-                JOIN Drivers d ON s.DriverId = d.Id
+                LEFT JOIN Trucks t ON s.TruckId = t.Id
+                LEFT JOIN Drivers d ON s.DriverId = d.Id
                 WHERE s.Id = @Id", connection);
 
             command.Parameters.AddWithValue("@Id", saleId);
@@ -178,8 +178,8 @@ namespace PoultryPOS.Services
                 {
                     Id = reader.GetInt32("Id"),
                     CustomerId = reader.GetInt32("CustomerId"),
-                    TruckId = reader.GetInt32("TruckId"),
-                    DriverId = reader.GetInt32("DriverId"),
+                    TruckId = reader.IsDBNull("TruckId") ? null : reader.GetInt32("TruckId"),
+                    DriverId = reader.IsDBNull("DriverId") ? null : reader.GetInt32("DriverId"),
                     GrossWeight = reader.GetDecimal("GrossWeight"),
                     NumberOfCages = reader.GetInt32("NumberOfCages"),
                     CageWeight = reader.GetDecimal("CageWeight"),
@@ -189,8 +189,8 @@ namespace PoultryPOS.Services
                     IsPaidNow = reader.GetBoolean("IsPaidNow"),
                     SaleDate = reader.GetDateTime("SaleDate"),
                     CustomerName = reader.GetString("CustomerName"),
-                    TruckName = reader.GetString("TruckName"),
-                    DriverName = reader.GetString("DriverName")
+                    TruckName = reader.IsDBNull("TruckName") ? null : reader.GetString("TruckName"),
+                    DriverName = reader.IsDBNull("DriverName") ? null : reader.GetString("DriverName")
                 };
             }
 
@@ -209,8 +209,8 @@ namespace PoultryPOS.Services
                         @CageWeight, @NetWeight, @PricePerKg, @TotalAmount, @IsPaidNow, @SaleDate)", connection);
 
             command.Parameters.AddWithValue("@CustomerId", sale.CustomerId);
-            command.Parameters.AddWithValue("@TruckId", sale.TruckId);
-            command.Parameters.AddWithValue("@DriverId", sale.DriverId);
+            command.Parameters.AddWithValue("@TruckId", sale.TruckId ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@DriverId", sale.DriverId ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@GrossWeight", sale.GrossWeight);
             command.Parameters.AddWithValue("@NumberOfCages", sale.NumberOfCages);
             command.Parameters.AddWithValue("@CageWeight", sale.CageWeight);
@@ -245,8 +245,8 @@ namespace PoultryPOS.Services
                 {
                     Id = reader.GetInt32("Id"),
                     CustomerId = reader.GetInt32("CustomerId"),
-                    TruckId = reader.IsDBNull("TruckId") ? (int?)null : reader.GetInt32("TruckId"),
-                    DriverId = reader.IsDBNull("DriverId") ? (int?)null : reader.GetInt32("DriverId"),
+                    TruckId = reader.IsDBNull("TruckId") ? null : reader.GetInt32("TruckId"),
+                    DriverId = reader.IsDBNull("DriverId") ? null : reader.GetInt32("DriverId"),
                     GrossWeight = reader.GetDecimal("GrossWeight"),
                     NumberOfCages = reader.GetInt32("NumberOfCages"),
                     CageWeight = reader.GetDecimal("CageWeight"),
@@ -290,8 +290,8 @@ namespace PoultryPOS.Services
                 {
                     Id = reader.GetInt32("Id"),
                     CustomerId = reader.GetInt32("CustomerId"),
-                    TruckId = reader.IsDBNull("TruckId") ? (int?)null : reader.GetInt32("TruckId"),
-                    DriverId = reader.IsDBNull("DriverId") ? (int?)null : reader.GetInt32("DriverId"),
+                    TruckId = reader.IsDBNull("TruckId") ? null : reader.GetInt32("TruckId"),
+                    DriverId = reader.IsDBNull("DriverId") ? null : reader.GetInt32("DriverId"),
                     GrossWeight = reader.GetDecimal("GrossWeight"),
                     NumberOfCages = reader.GetInt32("NumberOfCages"),
                     CageWeight = reader.GetDecimal("CageWeight"),

@@ -40,18 +40,22 @@ namespace PoultryPOS.Services
             return trucks;
         }
 
-        public void Add(Truck truck)
+        public int Add(Truck truck)
         {
             using var connection = _dbService.GetConnection();
             connection.Open();
 
-            var command = new SqlCommand("INSERT INTO Trucks (Name, CurrentLoad, NetWeight, PlateNumber) VALUES (@Name, @CurrentLoad, @NetWeight, @PlateNumber)", connection);
+            var command = new SqlCommand(@"
+                INSERT INTO Trucks (Name, CurrentLoad, NetWeight, PlateNumber) 
+                VALUES (@Name, @CurrentLoad, @NetWeight, @PlateNumber);
+                SELECT SCOPE_IDENTITY();", connection);
+
             command.Parameters.AddWithValue("@Name", truck.Name);
             command.Parameters.AddWithValue("@CurrentLoad", truck.CurrentLoad);
             command.Parameters.AddWithValue("@NetWeight", truck.NetWeight);
             command.Parameters.AddWithValue("@PlateNumber", truck.PlateNumber ?? (object)DBNull.Value);
 
-            command.ExecuteNonQuery();
+            return Convert.ToInt32(command.ExecuteScalar());
         }
 
         public void Update(Truck truck)

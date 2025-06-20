@@ -7,6 +7,7 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using System.Printing;
 using System.Windows.Input;
+
 namespace PoultryPOS.Views
 {
     public partial class SalesView : Page
@@ -38,24 +39,31 @@ namespace PoultryPOS.Views
             cmbCustomer.DisplayMemberPath = "Name";
             cmbCustomer.SelectedValuePath = "Id";
             _allCustomers = _customerService.GetAll();
-            cmbTruck.ItemsSource = _truckService.GetAll();
+
+            var trucks = new List<object> { new { Id = (int?)null, Name = "بدون شاحنة" } };
+            trucks.AddRange(_truckService.GetAll().Select(t => new { Id = (int?)t.Id, Name = t.Name }));
+            cmbTruck.ItemsSource = trucks;
             cmbTruck.DisplayMemberPath = "Name";
             cmbTruck.SelectedValuePath = "Id";
+            cmbTruck.SelectedIndex = 0;
 
-            cmbDriver.ItemsSource = _driverService.GetAll();
+            var drivers = new List<object> { new { Id = (int?)null, Name = "بدون سائق" } };
+            drivers.AddRange(_driverService.GetAll().Select(d => new { Id = (int?)d.Id, Name = d.Name }));
+            cmbDriver.ItemsSource = drivers;
             cmbDriver.DisplayMemberPath = "Name";
             cmbDriver.SelectedValuePath = "Id";
+            cmbDriver.SelectedIndex = 0;
         }
+
         private void CmbTruck_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (cmbTruck.SelectedValue != null)
+            if (cmbTruck.SelectedValue != null && cmbTruck.SelectedValue is int truckId)
             {
-                var truckId = (int)cmbTruck.SelectedValue;
                 var truck = _truckService.GetById(truckId);
                 if (truck != null && truck.CurrentLoad == 0)
                 {
                     MessageBox.Show($"الشاحنة '{truck.Name}' لا تحتوي على أقفاص متاحة (الحمولة الحالية: 0)",
-                                  "تحذير", MessageBoxButton.OK, MessageBoxImage.Warning);
+                                  "تحذير", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
         }
@@ -64,6 +72,7 @@ namespace PoultryPOS.Views
         {
             dgSaleItems.ItemsSource = _saleItems;
         }
+
         private void DgSaleItems_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter && sender is DataGrid dataGrid)
@@ -108,6 +117,7 @@ namespace PoultryPOS.Views
                 }
             }
         }
+
         private void SaleItems_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
             if (e.NewItems != null)
@@ -132,6 +142,7 @@ namespace PoultryPOS.Views
 
             UpdateTotals();
         }
+
         private void BtnApplyCageWeight_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(txtSingleCageWeight.Text))
@@ -166,6 +177,7 @@ namespace PoultryPOS.Views
                                "تم التطبيق", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
+
         private void SaleItem_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(SaleItem.TotalAmount))
@@ -331,12 +343,6 @@ namespace PoultryPOS.Views
                 return false;
             }
 
-            if (cmbTruck.SelectedValue != null && cmbDriver.SelectedValue == null)
-            {
-                MessageBox.Show("يرجى اختيار سائق عند اختيار شاحنة.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return false;
-            }
-
             foreach (var item in _saleItems)
             {
                 if (item.GrossWeight <= 0)
@@ -358,8 +364,19 @@ namespace PoultryPOS.Views
         private void ProcessInvoice(bool isPaidNow)
         {
             var customerId = (int)cmbCustomer.SelectedValue;
-            var truckId = cmbTruck.SelectedValue as int?;
-            var driverId = cmbDriver.SelectedValue as int?;
+
+            int? truckId = null;
+            if (cmbTruck.SelectedValue is int selectedTruckId)
+            {
+                truckId = selectedTruckId;
+            }
+
+            int? driverId = null;
+            if (cmbDriver.SelectedValue is int selectedDriverId)
+            {
+                driverId = selectedDriverId;
+            }
+
             var pricePerKg = decimal.Parse(txtPricePerKg.Text);
 
             var totalGrossWeight = _saleItems.Sum(item => item.GrossWeight);
@@ -447,10 +464,10 @@ namespace PoultryPOS.Views
                 Truck truck = null;
                 Driver driver = null;
 
-                if (truckId.HasValue && truckId.Value > 0)
+                if (truckId.HasValue)
                     truck = _truckService.GetAll().FirstOrDefault(t => t.Id == truckId.Value);
 
-                if (driverId.HasValue && driverId.Value > 0)
+                if (driverId.HasValue)
                     driver = _driverService.GetAll().FirstOrDefault(d => d.Id == driverId.Value);
 
                 var invoiceId = DateTime.Now.ToString("yyyyMMddHHmmss");
@@ -476,17 +493,18 @@ namespace PoultryPOS.Views
                 MessageBox.Show($"خطأ في طباعة الإيصال: {ex.Message}", "خطأ في الطباعة", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
         private FlowDocument CreateInvoiceDocument(
-       PrintDialog printDialog,
-       string invoiceId,
-       Customer customer,
-       Truck truck,
-       Driver driver,
-       bool isPaidNow,
-       decimal invoiceTotal,
-       decimal pricePerKg,
-       decimal originalBalance,
-       decimal newBalance)
+            PrintDialog printDialog,
+            string invoiceId,
+            Customer customer,
+            Truck truck,
+            Driver driver,
+            bool isPaidNow,
+            decimal invoiceTotal,
+            decimal pricePerKg,
+            decimal originalBalance,
+            decimal newBalance)
         {
             var flowDocument = new FlowDocument
             {
@@ -742,6 +760,7 @@ namespace PoultryPOS.Views
 
             return flowDocument;
         }
+
         private TableCell CreateCellWithBorder(string text, FontWeight fontWeight = default, TextAlignment alignment = TextAlignment.Left, Brush foreground = null, Brush background = null, int columnSpan = 1)
         {
             var paragraph = new Paragraph(new Run(text ?? string.Empty))
@@ -764,62 +783,12 @@ namespace PoultryPOS.Views
             return cell;
         }
 
-        private void AddMetaRowWithBorder(Table table, string label, string value)
-        {
-            if (table == null) return;
-
-            var row = new TableRow();
-            row.Cells.Add(CreateCellWithBorder(label, FontWeights.Bold, TextAlignment.Right, Brushes.DarkBlue, Brushes.LightGray));
-            row.Cells.Add(CreateCellWithBorder(value ?? string.Empty, FontWeights.Normal, TextAlignment.Left));
-            table.RowGroups[0].Rows.Add(row);
-        }
-        private TableCell CreateCell(string text, FontWeight fontWeight = default, TextAlignment alignment = TextAlignment.Left)
-        {
-            var paragraph = new Paragraph(new Run(text ?? string.Empty))
-            {
-                FontWeight = fontWeight == default ? FontWeights.Normal : fontWeight,
-                TextAlignment = alignment,
-                Margin = new Thickness(2)
-            };
-            return new TableCell(paragraph);
-        }
-
-        private void AddMetaRow(Table table, string label, string value)
-        {
-            if (table == null) return;
-
-            var row = new TableRow();
-            row.Cells.Add(CreateCell(label, FontWeights.Bold));
-            row.Cells.Add(CreateCell(value ?? string.Empty, FontWeights.Normal));
-            table.RowGroups[0].Rows.Add(row);
-        }
-
-        private void AddTotalRow(Table table, string label, string value)
-        {
-            if (table == null) return;
-
-            var row = new TableRow();
-            row.Cells.Add(CreateCell(label, FontWeights.Normal, TextAlignment.Left));
-            row.Cells.Add(CreateCell(value, FontWeights.Normal, TextAlignment.Right));
-            table.RowGroups[0].Rows.Add(row);
-        }
-
-        private BlockUIContainer CreateDivider()
-        {
-            return new BlockUIContainer(new Border
-            {
-                Height = 1,
-                Background = Brushes.Black,
-                Margin = new Thickness(0, 2, 0, 2)
-            });
-        }
-
         private void ClearAll()
         {
             _saleItems.Clear();
             cmbCustomer.SelectedIndex = -1;
-            cmbTruck.SelectedIndex = -1;
-            cmbDriver.SelectedIndex = -1;
+            cmbTruck.SelectedIndex = 0;
+            cmbDriver.SelectedIndex = 0;
             txtPricePerKg.Clear();
             lblCurrentBalance.Text = "";
 

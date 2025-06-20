@@ -102,10 +102,21 @@ namespace PoultryPOS.Views
                     NetWeight = netWeight
                 };
 
-                _truckService.Add(truck);
+                var newTruckId = _truckService.Add(truck);
+
+                if (currentLoad > 0 && netWeight > 0)
+                {
+                    _truckService.StartLoadingSession(newTruckId, currentLoad, netWeight);
+                    MessageBox.Show("تم إضافة الشاحنة وبدء جلسة تحميل جديدة تلقائياً!", "نجح", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show("تم إضافة الشاحنة بنجاح!", "نجح", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+
                 LoadData();
+                LoadVarianceHistory();
                 ClearTruckForm();
-                MessageBox.Show("تم إضافة الشاحنة بنجاح!", "نجح", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
