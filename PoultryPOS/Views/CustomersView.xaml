@@ -398,7 +398,12 @@
 
             <TabItem Header="💳 إدارة المدفوعات" Margin="0,-7,0,0">
                 <Grid Background="White" Margin="0,0,0,10">
-                    <Border Style="{StaticResource CardStyle}" Margin="15" VerticalAlignment="Top" Height="250">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" Style="{StaticResource CardStyle}" Margin="15" Height="250">
                         <StackPanel>
                             <TextBlock Text="💳 استقبال دفعة من العميل" FontSize="18" FontWeight="Bold" 
                                        Foreground="#2C3E50" HorizontalAlignment="Center" Margin="0,0,0,30"/>
@@ -439,6 +444,93 @@
                                             Height="40" FontSize="14" Click="BtnReceivePayment_Click"/>
                                 </StackPanel>
                             </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Row="1" Style="{StaticResource CardStyle}" Margin="15,0">
+                        <StackPanel>
+                            <TextBlock Text="📋 تعديل المدفوعات الموجودة" FontSize="18" FontWeight="Bold" 
+                                       Foreground="#2C3E50" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+
+                            <Grid Margin="0,0,0,15">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                    <TextBlock Text="رقم الدفعة:" FontWeight="Bold" Margin="0,0,0,5"/>
+                                    <TextBox Name="txtEditPaymentId" Height="35" IsReadOnly="True" Background="#F5F5F5"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1" Margin="0,0,10,0">
+                                    <TextBlock Text="العميل:" FontWeight="Bold" Margin="0,0,0,5"/>
+                                    <ComboBox Name="cmbEditPaymentCustomer" Height="35"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2" Margin="0,0,10,0">
+                                    <TextBlock Text="المبلغ الجديد:" FontWeight="Bold" Margin="0,0,0,5"/>
+                                    <TextBox Name="txtEditPaymentAmount" Height="35"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="3" Margin="0,0,10,0">
+                                    <TextBlock Text="الملاحظات:" FontWeight="Bold" Margin="0,0,0,5"/>
+                                    <TextBox Name="txtEditPaymentNotes" Height="35"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="4" VerticalAlignment="Bottom">
+                                    <Button Name="btnUpdatePayment" Content="تحديث" Background="#3498DB" 
+                                            Style="{StaticResource PrimaryButton}" Height="35" Click="BtnUpdatePayment_Click"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <DataGrid Name="dgAllPayments" AutoGenerateColumns="False" 
+                                      HeadersVisibility="Column" GridLinesVisibility="Horizontal" 
+                                      AlternatingRowBackground="#F8F9FA" FlowDirection="LeftToRight"
+                                      SelectionChanged="DgAllPayments_SelectionChanged" MaxHeight="300">
+                                <DataGrid.Resources>
+                                    <Style TargetType="DataGridColumnHeader">
+                                        <Setter Property="Background" Value="#9B59B6"/>
+                                        <Setter Property="Foreground" Value="White"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                        <Setter Property="FontSize" Value="13"/>
+                                        <Setter Property="Padding" Value="8"/>
+                                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                    </Style>
+                                </DataGrid.Resources>
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="الرقم" Binding="{Binding Id}" Width="60"/>
+                                    <DataGridTextColumn Header="التاريخ" Binding="{Binding PaymentDate, StringFormat=yyyy-MM-dd HH:mm}" Width="140"/>
+                                    <DataGridTextColumn Header="العميل" Binding="{Binding CustomerName}" Width="*"/>
+                                    <DataGridTextColumn Header="المبلغ" Binding="{Binding Amount, StringFormat=C}" Width="100">
+                                        <DataGridTextColumn.ElementStyle>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="Green"/>
+                                                <Setter Property="FontWeight" Value="Bold"/>
+                                                <Setter Property="HorizontalAlignment" Value="Center"/>
+                                            </Style>
+                                        </DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
+                                    <DataGridTextColumn Header="ملاحظات" Binding="{Binding Notes}" Width="150"/>
+                                    <DataGridTemplateColumn Header="الإجراءات" Width="200">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Button Content="📝 تعديل" Width="70" Height="25" 
+                                                            Background="#3498DB" Foreground="White" FontWeight="Bold" FontSize="10"
+                                                            Click="BtnEditPayment_Click" Margin="0,0,5,0"/>
+                                                    <Button Content="🖨️ طباعة" Width="70" Height="25" 
+                                                            Background="#9B59B6" Foreground="White" FontWeight="Bold" FontSize="10"
+                                                            Click="BtnReprintPayment_Click"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
                         </StackPanel>
                     </Border>
                 </Grid>

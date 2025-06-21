@@ -15,6 +15,7 @@ namespace PoultryPOS.Views
         private readonly SaleService _saleService;
         private Customer _selectedCustomer;
         private List<Customer> _allCustomers;
+        private Payment _selectedPayment;
         public CustomersView()
         {
             InitializeComponent();
@@ -30,7 +31,9 @@ namespace PoultryPOS.Views
             LoadCustomers();
             LoadPaymentCustomers();
             LoadCustomersWithBalance();
+            LoadAllPayments();
         }
+
 
         private void LoadCustomers()
         {
@@ -40,9 +43,14 @@ namespace PoultryPOS.Views
 
         private void LoadPaymentCustomers()
         {
-            cmbPaymentCustomer.ItemsSource = _customerService.GetAll().Where(c => c.Balance > 0).ToList();
+            var customers = _customerService.GetAll().Where(c => c.Balance > 0).ToList();
+            cmbPaymentCustomer.ItemsSource = customers;
             cmbPaymentCustomer.DisplayMemberPath = "Name";
             cmbPaymentCustomer.SelectedValuePath = "Id";
+
+            cmbEditPaymentCustomer.ItemsSource = _customerService.GetAll();
+            cmbEditPaymentCustomer.DisplayMemberPath = "Name";
+            cmbEditPaymentCustomer.SelectedValuePath = "Id";
         }
         private void LoadCustomersWithBalance()
         {
@@ -62,6 +70,10 @@ namespace PoultryPOS.Views
         private void TxtSearchCustomers_TextChanged(object sender, TextChangedEventArgs e)
         {
             FilterCustomers();
+        }
+        private void LoadAllPayments()
+        {
+            dgAllPayments.ItemsSource = _paymentService.GetAll();
         }
 
         private void BtnClearSearch_Click(object sender, RoutedEventArgs e)
@@ -113,7 +125,124 @@ namespace PoultryPOS.Views
                 }
             }
         }
+        private void DgAllPayments_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (dgAllPayments.SelectedItem is Payment payment)
+            {
+                _selectedPayment = payment;
+                txtEditPaymentId.Text = payment.Id.ToString();
+                cmbEditPaymentCustomer.SelectedValue = payment.CustomerId;
+                txtEditPaymentAmount.Text = payment.Amount.ToString("F2");
+                txtEditPaymentNotes.Text = payment.Notes ?? "";
+            }
+        }
 
+        private void BtnEditPayment_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.DataContext is Payment payment)
+            {
+                _selectedPayment = payment;
+                txtEditPaymentId.Text = payment.Id.ToString();
+                cmbEditPaymentCustomer.SelectedValue = payment.CustomerId;
+                txtEditPaymentAmount.Text = payment.Amount.ToString("F2");
+                txtEditPaymentNotes.Text = payment.Notes ?? "";
+            }
+        }
+
+        private void BtnUpdatePayment_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedPayment == null)
+            {
+                MessageBox.Show("يرجى اختيار دفعة للتعديل.", "خطأ في التحديد", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (cmbEditPaymentCustomer.SelectedValue == null)
+            {
+                MessageBox.Show("يرجى اختيار عميل.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (!decimal.TryParse(txtEditPaymentAmount.Text, out decimal newAmount) || newAmount <= 0)
+            {
+                MessageBox.Show("يرجى إدخال مبلغ دفعة صالح.", "خطأ في التحقق", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var customerId = (int)cmbEditPaymentCustomer.SelectedValue;
+            var customer = _customerService.GetById(customerId);
+
+            if (customer == null)
+            {
+                MessageBox.Show("العميل غير موجود.", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            try
+            {
+                var originalAmount = _selectedPayment.Amount;
+                var originalCustomerId = _selectedPayment.CustomerId;
+
+                var amountDifference = newAmount - originalAmount;
+
+                if (originalCustomerId != customerId)
+                {
+                    var originalCustomer = _customerService.GetById(originalCustomerId);
+                    if (originalCustomer != null)
+                    {
+                        var originalCustomerNewBalance = originalCustomer.Balance + originalAmount;
+                        _customerService.UpdateBalance(originalCustomerId, originalCustomerNewBalance);
+                    }
+
+                    var newCustomerBalance = customer.Balance - newAmount;
+                    _customerService.UpdateBalance(customerId, newCustomerBalance);
+                }
+                else
+                {
+                    var newBalance = customer.Balance - amountDifference;
+                    _customerService.UpdateBalance(customerId, newBalance);
+                }
+
+                _selectedPayment.CustomerId = customerId;
+                _selectedPayment.Amount = newAmount;
+                _selectedPayment.Notes = string.IsNullOrWhiteSpace(txtEditPaymentNotes.Text) ? null : txtEditPaymentNotes.Text.Trim();
+
+                _paymentService.Update(_selectedPayment);
+
+                LoadData();
+                UpdateSummary();
+                LoadAllPayments();
+                ClearEditPaymentForm();
+
+                MessageBox.Show("تم تحديث الدفعة بنجاح!", "نجح", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"خطأ في تحديث الدفعة: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        private void BtnReprintPayment_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.DataContext is Payment payment)
+            {
+                var customer = _customerService.GetById(payment.CustomerId);
+                if (customer != null)
+                {
+                    var currentBalance = customer.Balance;
+                    var originalBalance = currentBalance + payment.Amount;
+                    PrintPaymentReceipt(payment, customer, currentBalance);
+                }
+            }
+        }
+        private void ClearEditPaymentForm()
+        {
+            txtEditPaymentId.Clear();
+            cmbEditPaymentCustomer.SelectedIndex = -1;
+            txtEditPaymentAmount.Clear();
+            txtEditPaymentNotes.Clear();
+            _selectedPayment = null;
+            dgAllPayments.SelectedItem = null;
+        }
         private void BtnAddCustomer_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(txtCustomerName.Text))
