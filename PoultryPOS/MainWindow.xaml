@@ -8,7 +8,6 @@
             <RowDefinition Height="60"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        
 
         <Border Grid.Row="0" Background="#2C3E50" Padding="10">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
@@ -30,6 +29,9 @@
                 <Button Name="btnVarianceReport" Content="VARIANCE REPORT" Width="140" Height="40" Margin="5" 
                         Background="#8E44AD" Foreground="White" BorderBrush="Transparent" 
                         FontWeight="Bold" Click="BtnVarianceReport_Click"/>
+                <Button Name="btnTestSync" Content="TEST SYNC" Width="100" Height="40" Margin="5" 
+                        Background="#F39C12" Foreground="White" BorderBrush="Transparent" 
+                        FontWeight="Bold" Click="BtnTestSync_Click"/>
             </StackPanel>
         </Border>
 

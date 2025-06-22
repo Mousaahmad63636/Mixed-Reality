@@ -22,11 +22,11 @@ namespace PoultryPOS.Services
             try
             {
                 var saleCommand = new SqlCommand(@"
-                    INSERT INTO Sales (CustomerId, TruckId, DriverId, GrossWeight, NumberOfCages, 
-                                      CageWeight, NetWeight, PricePerKg, TotalAmount, IsPaidNow, SaleDate) 
-                    VALUES (@CustomerId, @TruckId, @DriverId, @GrossWeight, @NumberOfCages, 
-                            @CageWeight, @NetWeight, @PricePerKg, @TotalAmount, @IsPaidNow, @SaleDate);
-                    SELECT SCOPE_IDENTITY();", connection, transaction);
+            INSERT INTO Sales (CustomerId, TruckId, DriverId, GrossWeight, NumberOfCages, 
+                              CageWeight, NetWeight, PricePerKg, TotalAmount, IsPaidNow, SaleDate) 
+            VALUES (@CustomerId, @TruckId, @DriverId, @GrossWeight, @NumberOfCages, 
+                    @CageWeight, @NetWeight, @PricePerKg, @TotalAmount, @IsPaidNow, @SaleDate);
+            SELECT SCOPE_IDENTITY();", connection, transaction);
 
                 saleCommand.Parameters.AddWithValue("@CustomerId", sale.CustomerId);
                 saleCommand.Parameters.AddWithValue("@TruckId", sale.TruckId ?? (object)DBNull.Value);
@@ -45,10 +45,10 @@ namespace PoultryPOS.Services
                 foreach (var item in saleItems)
                 {
                     var itemCommand = new SqlCommand(@"
-                        INSERT INTO SaleItems (SaleId, GrossWeight, NumberOfCages, SingleCageWeight, 
-                                              TotalCageWeight, NetWeight, TotalAmount)
-                        VALUES (@SaleId, @GrossWeight, @NumberOfCages, @SingleCageWeight, 
-                                @TotalCageWeight, @NetWeight, @TotalAmount)", connection, transaction);
+                INSERT INTO SaleItems (SaleId, GrossWeight, NumberOfCages, SingleCageWeight, 
+                                      TotalCageWeight, NetWeight, TotalAmount)
+                VALUES (@SaleId, @GrossWeight, @NumberOfCages, @SingleCageWeight, 
+                        @TotalCageWeight, @NetWeight, @TotalAmount)", connection, transaction);
 
                     itemCommand.Parameters.AddWithValue("@SaleId", saleId);
                     itemCommand.Parameters.AddWithValue("@GrossWeight", item.GrossWeight);
@@ -62,6 +62,28 @@ namespace PoultryPOS.Services
                 }
 
                 transaction.Commit();
+
+                // Record sync changes after successful transaction
+                var changeDetection = new ChangeDetectionService();
+
+                var saleChangeData = new Dictionary<string, object?>
+                {
+                    ["Id"] = saleId,
+                    ["CustomerId"] = sale.CustomerId,
+                    ["TruckId"] = sale.TruckId,
+                    ["DriverId"] = sale.DriverId,
+                    ["GrossWeight"] = sale.GrossWeight,
+                    ["NumberOfCages"] = sale.NumberOfCages,
+                    ["CageWeight"] = sale.CageWeight,
+                    ["NetWeight"] = sale.NetWeight,
+                    ["PricePerKg"] = sale.PricePerKg,
+                    ["TotalAmount"] = sale.TotalAmount,
+                    ["IsPaidNow"] = sale.IsPaidNow,
+                    ["SaleDate"] = sale.SaleDate
+                };
+
+                changeDetection.RecordChange("Sales", saleId, "INSERT", saleChangeData);
+
                 return saleId;
             }
             catch

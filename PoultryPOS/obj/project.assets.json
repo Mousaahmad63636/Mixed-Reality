@@ -1832,11 +1832,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Mr. Ahmad\\Desktop\\20- 6 kaboom Chicken POS Final V\\PoultryPOS\\PoultryPOS.csproj",
+      "projectUniqueName": "C:\\Users\\Mr. Ahmad\\Desktop\\21- 6 kaboom Chicken POS Final V\\PC1\\PoultryPOS\\PoultryPOS.csproj",
       "projectName": "PoultryPOS",
-      "projectPath": "C:\\Users\\Mr. Ahmad\\Desktop\\20- 6 kaboom Chicken POS Final V\\PoultryPOS\\PoultryPOS.csproj",
+      "projectPath": "C:\\Users\\Mr. Ahmad\\Desktop\\21- 6 kaboom Chicken POS Final V\\PC1\\PoultryPOS\\PoultryPOS.csproj",
       "packagesPath": "C:\\Users\\Mr. Ahmad\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Mr. Ahmad\\Desktop\\20- 6 kaboom Chicken POS Final V\\PoultryPOS\\obj\\",
+      "outputPath": "C:\\Users\\Mr. Ahmad\\Desktop\\21- 6 kaboom Chicken POS Final V\\PC1\\PoultryPOS\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Mr. Ahmad\\AppData\\Roaming\\NuGet\\NuGet.Config",

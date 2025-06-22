@@ -13,10 +13,19 @@ namespace PoultryPOS
             {
                 var dbService = new DatabaseService();
                 dbService.InitializeDatabase();
+
+                // Test cloud access on startup
+                var syncTest = new SyncTestService();
+                var accessWorking = syncTest.TestCloudAccess();
+
+                if (accessWorking)
+                {
+                    System.Windows.MessageBox.Show("Cloud sync setup successful!", "Sync Ready");
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Database initialization failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Application initialization failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 Shutdown();
             }
         }
