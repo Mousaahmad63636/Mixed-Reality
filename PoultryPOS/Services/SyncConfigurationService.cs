@@ -8,7 +8,7 @@ namespace PoultryPOS.Services
     public class SyncConfigurationService
     {
         private readonly DatabaseService _dbService;
-        private readonly string _deviceId = "PC1"; // Change this to "PC2" on second computer
+        private readonly string _deviceId = "PC1";
         private readonly string _fixedCloudPath = @"G:\My Drive\PoultryPOS_Sync";
 
         public SyncConfigurationService()
@@ -29,13 +29,11 @@ namespace PoultryPOS.Services
             {
                 var cloudPath = reader.IsDBNull("CloudFolderPath") ? null : reader.GetString("CloudFolderPath");
 
-                // If path is empty or null, use the fixed path
                 if (string.IsNullOrEmpty(cloudPath))
                 {
                     cloudPath = _fixedCloudPath;
                     reader.Close();
 
-                    // Update the database with the correct path
                     var updateCommand = new SqlCommand(@"
                         UPDATE SyncConfiguration 
                         SET CloudFolderPath = @CloudFolderPath 
@@ -59,27 +57,26 @@ namespace PoultryPOS.Services
                     CreatedDate = DateTime.Now
                 };
 
-                System.Windows.MessageBox.Show($"Config loaded - Path: '{config.CloudFolderPath}'", "Config Debug");
                 return config;
             }
 
             return CreateDefaultConfiguration();
         }
+
         public void ResetLastSyncDate()
         {
             using var connection = _dbService.GetConnection();
             connection.Open();
 
             var command = new SqlCommand(@"
-        UPDATE SyncConfiguration 
-        SET LastSyncDate = '1900-01-01' 
-        WHERE DeviceId = @DeviceId", connection);
+                UPDATE SyncConfiguration 
+                SET LastSyncDate = '1900-01-01' 
+                WHERE DeviceId = @DeviceId", connection);
 
             command.Parameters.AddWithValue("@DeviceId", _deviceId);
             command.ExecuteNonQuery();
-
-            System.Windows.MessageBox.Show("LastSyncDate reset to 1900-01-01", "Reset Complete");
         }
+
         public void UpdateConfiguration(SyncConfiguration config)
         {
             using var connection = _dbService.GetConnection();
@@ -100,8 +97,6 @@ namespace PoultryPOS.Services
 
         private SyncConfiguration CreateDefaultConfiguration()
         {
-            System.Windows.MessageBox.Show($"Creating default config with path: '{_fixedCloudPath}'", "Config Debug");
-
             var config = new SyncConfiguration
             {
                 DeviceId = _deviceId,
@@ -114,12 +109,10 @@ namespace PoultryPOS.Services
             using var connection = _dbService.GetConnection();
             connection.Open();
 
-            // Delete any existing config for this device
             var deleteCommand = new SqlCommand("DELETE FROM SyncConfiguration WHERE DeviceId = @DeviceId", connection);
             deleteCommand.Parameters.AddWithValue("@DeviceId", _deviceId);
             deleteCommand.ExecuteNonQuery();
 
-            // Insert new config
             var command = new SqlCommand(@"
                 INSERT INTO SyncConfiguration (DeviceId, LastSyncDate, CloudFolderPath, IsEnabled, CreatedDate) 
                 VALUES (@DeviceId, @LastSyncDate, @CloudFolderPath, @IsEnabled, @CreatedDate)", connection);
@@ -142,8 +135,6 @@ namespace PoultryPOS.Services
             var config = GetConfiguration();
             var basePath = config.CloudFolderPath ?? _fixedCloudPath;
             var fullPath = Path.Combine(basePath, $"{_deviceId}_Changes");
-
-            System.Windows.MessageBox.Show($"My changes folder: '{fullPath}'", "Path Debug");
 
             return fullPath;
         }

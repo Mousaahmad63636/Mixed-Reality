@@ -21,7 +21,6 @@ namespace PoultryPOS.Services
             {
                 _fileService.EnsureFoldersExist();
 
-                // Create a test change using the change detection service
                 var testData = new Dictionary<string, object?>
                 {
                     ["TestField"] = "Test Value",
@@ -40,6 +39,7 @@ namespace PoultryPOS.Services
                 return false;
             }
         }
+
         public void DebugSyncFiles()
         {
             try
@@ -49,32 +49,25 @@ namespace PoultryPOS.Services
 
                 foreach (var dailyFile in dailyFiles)
                 {
-                    System.Windows.MessageBox.Show($"Daily file from {dailyFile.DeviceId} has {dailyFile.Changes.Count} changes", "Debug");
-
-                    foreach (var change in dailyFile.Changes)
+                    foreach (var change in dailyFiles.SelectMany(df => df.Changes))
                     {
-                        var dataKeys = string.Join(", ", change.Data.Keys);
-                        System.Windows.MessageBox.Show($"Change: {change.Table} {change.Operation} ID:{change.RecordId}\nData keys: {dataKeys}", "Debug");
-
                         if (change.Table.ToLower() == "sales")
                         {
-                            var customerId = change.Data.ContainsKey("CustomerId") ? change.Data["CustomerId"]?.ToString() : "NULL";
-                            var totalAmount = change.Data.ContainsKey("TotalAmount") ? change.Data["TotalAmount"]?.ToString() : "NULL";
-                            System.Windows.MessageBox.Show($"Sales data - Customer: {customerId}, Amount: {totalAmount}", "Sales Debug");
+                            // Process sales changes silently
                         }
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Windows.MessageBox.Show($"Debug failed: {ex.Message}", "Error");
+                // Silent failure for debug operations
             }
         }
+
         public void TestDailySyncFile()
         {
             try
             {
-                // Test creating a daily sync file with sample data
                 var testChange = new SyncChange
                 {
                     Table = "TestTable",
@@ -92,12 +85,10 @@ namespace PoultryPOS.Services
                 };
 
                 _fileService.AddChangeToTodaysFile(testChange);
-
-                System.Windows.MessageBox.Show("Daily sync file test completed successfully!", "Test Success");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Windows.MessageBox.Show($"Daily sync file test failed: {ex.Message}", "Test Error");
+                // Silent failure for test operations
             }
         }
     }

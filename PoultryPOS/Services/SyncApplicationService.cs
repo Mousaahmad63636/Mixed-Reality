@@ -19,8 +19,6 @@ namespace PoultryPOS.Services
         {
             try
             {
-                System.Windows.MessageBox.Show($"Applying: {change.Operation} on {change.Table} ID {change.RecordId}", "Apply Debug");
-
                 switch (change.Operation.ToUpper())
                 {
                     case "INSERT":
@@ -36,11 +34,9 @@ namespace PoultryPOS.Services
                 }
 
                 LogSyncOperation(change, "SUCCESS", null);
-                System.Windows.MessageBox.Show($"Successfully applied {change.Operation} on {change.Table} ID {change.RecordId}", "Success");
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Failed to apply {change.Operation} on {change.Table} ID {change.RecordId}: {ex.Message}", "Error");
                 LogSyncOperation(change, "ERROR", ex.Message);
             }
         }
@@ -50,39 +46,30 @@ namespace PoultryPOS.Services
             using var connection = _dbService.GetConnection();
             connection.Open();
 
-            // Check if record already exists
             var checkCommand = new SqlCommand($"SELECT COUNT(*) FROM {change.Table} WHERE Id = @Id", connection);
             checkCommand.Parameters.AddWithValue("@Id", change.RecordId);
             var exists = (int)checkCommand.ExecuteScalar() > 0;
 
             if (exists)
             {
-                System.Windows.MessageBox.Show($"Record {change.RecordId} already exists in {change.Table}, skipping", "Info");
                 return;
             }
 
-            // Insert new record based on table
             switch (change.Table.ToLower())
             {
                 case "customers":
                     InsertCustomer(change, connection);
-                    System.Windows.MessageBox.Show($"Customer {change.RecordId} inserted successfully", "Success");
                     break;
                 case "sales":
                     InsertSale(change, connection);
-                    System.Windows.MessageBox.Show($"Sale {change.RecordId} inserted successfully", "Success");
                     break;
                 case "payments":
                     InsertPayment(change, connection);
-                    System.Windows.MessageBox.Show($"Payment {change.RecordId} inserted successfully", "Success");
                     break;
                 case "saleitem":
                 case "saleitems":
-                    // Skip SaleItems for now, they're handled differently
-                    System.Windows.MessageBox.Show($"SaleItems sync not yet implemented", "Info");
                     break;
                 default:
-                    System.Windows.MessageBox.Show($"Insert not implemented for table: {change.Table}", "Warning");
                     break;
             }
         }
@@ -98,7 +85,6 @@ namespace PoultryPOS.Services
                     UpdateCustomer(change, connection);
                     break;
                 default:
-                    System.Windows.MessageBox.Show($"Update not implemented for table: {change.Table}", "Warning");
                     break;
             }
         }
@@ -172,28 +158,24 @@ namespace PoultryPOS.Services
         {
             try
             {
-                System.Windows.MessageBox.Show($"Inserting Sale ID: {change.RecordId}", "Sale Debug");
-
-                // First check if the customer exists
                 var customerCheck = new SqlCommand("SELECT COUNT(*) FROM Customers WHERE Id = @CustomerId", connection);
                 customerCheck.Parameters.AddWithValue("@CustomerId", GetIntValue(change.Data, "CustomerId"));
                 var customerExists = (int)customerCheck.ExecuteScalar() > 0;
 
                 if (!customerExists)
                 {
-                    System.Windows.MessageBox.Show($"Customer ID {GetIntValue(change.Data, "CustomerId")} does not exist, cannot insert sale", "Error");
                     return;
                 }
 
                 var command = new SqlCommand(@"
-            SET IDENTITY_INSERT Sales ON;
-            INSERT INTO Sales (Id, CustomerId, TruckId, DriverId, GrossWeight, NumberOfCages, CageWeight, 
-                              NetWeight, PricePerKg, TotalAmount, IsPaidNow, SaleDate, 
-                              SyncId, LastModified, SyncStatus, DeviceId, Version, IsDeleted) 
-            VALUES (@Id, @CustomerId, @TruckId, @DriverId, @GrossWeight, @NumberOfCages, @CageWeight,
-                    @NetWeight, @PricePerKg, @TotalAmount, @IsPaidNow, @SaleDate,
-                    @SyncId, @LastModified, 'Synced', @DeviceId, @Version, 0);
-            SET IDENTITY_INSERT Sales OFF;", connection);
+                    SET IDENTITY_INSERT Sales ON;
+                    INSERT INTO Sales (Id, CustomerId, TruckId, DriverId, GrossWeight, NumberOfCages, CageWeight, 
+                                      NetWeight, PricePerKg, TotalAmount, IsPaidNow, SaleDate, 
+                                      SyncId, LastModified, SyncStatus, DeviceId, Version, IsDeleted) 
+                    VALUES (@Id, @CustomerId, @TruckId, @DriverId, @GrossWeight, @NumberOfCages, @CageWeight,
+                            @NetWeight, @PricePerKg, @TotalAmount, @IsPaidNow, @SaleDate,
+                            @SyncId, @LastModified, 'Synced', @DeviceId, @Version, 0);
+                    SET IDENTITY_INSERT Sales OFF;", connection);
 
                 command.Parameters.AddWithValue("@Id", change.RecordId);
                 command.Parameters.AddWithValue("@CustomerId", GetIntValue(change.Data, "CustomerId"));
@@ -212,15 +194,14 @@ namespace PoultryPOS.Services
                 command.Parameters.AddWithValue("@DeviceId", "Remote");
                 command.Parameters.AddWithValue("@Version", change.Version);
 
-                var rowsAffected = command.ExecuteNonQuery();
-                System.Windows.MessageBox.Show($"Sale insert completed. Rows affected: {rowsAffected}", "Sale Debug");
+                command.ExecuteNonQuery();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Windows.MessageBox.Show($"Error inserting sale: {ex.Message}", "Sale Error");
                 throw;
             }
         }
+
         private void InsertPayment(SyncChange change, SqlConnection connection)
         {
             var command = new SqlCommand(@"
@@ -244,7 +225,6 @@ namespace PoultryPOS.Services
             command.ExecuteNonQuery();
         }
 
-        // Helper methods for safe data conversion
         private string GetStringValue(Dictionary<string, object?> data, string key)
         {
             if (data.ContainsKey(key) && data[key] != null)
@@ -356,9 +336,9 @@ namespace PoultryPOS.Services
 
                 command.ExecuteNonQuery();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Windows.MessageBox.Show($"Failed to log sync operation: {ex.Message}", "Log Error");
+                // Silent logging failure
             }
         }
     }

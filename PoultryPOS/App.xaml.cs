@@ -14,7 +14,6 @@ namespace PoultryPOS
                 var dbService = new DatabaseService();
                 dbService.InitializeDatabase();
 
-                // Test cloud access on startup
                 var syncTest = new SyncTestService();
                 var accessWorking = syncTest.TestCloudAccess();
 

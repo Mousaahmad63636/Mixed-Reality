@@ -26,9 +26,8 @@ namespace PoultryPOS.Services
                 Directory.CreateDirectory(Path.Combine(basePath, "Archive"));
                 Directory.CreateDirectory(Path.Combine(basePath, "Archive", "Processed"));
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Windows.MessageBox.Show($"Failed to create folders at '{basePath}': {ex.Message}", "Error");
                 throw;
             }
         }
@@ -48,12 +47,9 @@ namespace PoultryPOS.Services
                 dailyFile.LastUpdated = DateTime.Now;
 
                 SaveDailyFile(filePath, dailyFile);
-
-                System.Windows.MessageBox.Show($"Change added to daily file: {todayFileName}\nTotal changes today: {dailyFile.Changes.Count}", "Daily Sync");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Windows.MessageBox.Show($"Error adding change to daily file: {ex.Message}", "Error");
                 throw;
             }
         }
@@ -113,8 +109,6 @@ namespace PoultryPOS.Services
             var allDevices = new[] { "PC1", "PC2" };
             var myDeviceId = _configService.GetDeviceId();
 
-            System.Windows.MessageBox.Show($"Looking for daily files from other devices. My device: {myDeviceId}", "Daily Sync Debug");
-
             foreach (var device in allDevices.Where(d => d != myDeviceId))
             {
                 var deviceFolder = Path.Combine(basePath, $"{device}_Changes");
@@ -122,7 +116,6 @@ namespace PoultryPOS.Services
                 if (!Directory.Exists(deviceFolder)) continue;
 
                 var files = Directory.GetFiles(deviceFolder, $"{device}_*.json").ToList();
-                System.Windows.MessageBox.Show($"Found {files.Count} daily files from {device}", "Daily Sync Debug");
 
                 foreach (var file in files)
                 {
@@ -137,12 +130,11 @@ namespace PoultryPOS.Services
                         if (dailyFile != null && dailyFile.Changes.Count > 0)
                         {
                             dailyFiles.Add(dailyFile);
-                            System.Windows.MessageBox.Show($"Loaded daily file: {Path.GetFileName(file)} with {dailyFile.Changes.Count} changes", "Daily Sync Debug");
                         }
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
-                        System.Windows.MessageBox.Show($"Failed to read daily file {file}: {ex.Message}", "File Error");
+                        // Skip corrupted files
                     }
                 }
             }
@@ -152,8 +144,7 @@ namespace PoultryPOS.Services
 
         public void ArchiveProcessedFile(string sourceFilePath)
         {
-            // For daily files, we don't archive immediately
-            // We can archive files older than 30 days
+            // Archive files older than 30 days
         }
 
         private void LogError(string message)
