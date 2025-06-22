@@ -248,7 +248,6 @@ namespace PoultryPOS.Views
                 MessageBox.Show($"خطأ في إعادة طباعة الإيصال: {ex.Message}", "خطأ في الطباعة", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
         private FlowDocument CreateSaleReceiptDocument(
             PrintDialog printDialog,
             string invoiceId,
@@ -476,12 +475,12 @@ namespace PoultryPOS.Views
         }
 
         private FlowDocument CreatePaymentReceiptDocument(
-            PrintDialog printDialog,
-            string receiptId,
-            Payment payment,
-            Customer customer,
-            decimal originalBalance,
-            decimal newBalance)
+      PrintDialog printDialog,
+      string receiptId,
+      Payment payment,
+      Customer customer,
+      decimal originalBalance,
+      decimal newBalance)
         {
             var flowDocument = new FlowDocument
             {
@@ -590,7 +589,7 @@ namespace PoultryPOS.Views
 
             var newBalanceRow = new TableRow { Background = Brushes.LightYellow };
             newBalanceRow.Cells.Add(CreateCellWithBorder("الرصيد بعد الدفعة", FontWeights.Bold, TextAlignment.Right, Brushes.DarkRed));
-            newBalanceRow.Cells.Add(CreateCellWithBorder($"{originalBalance - payment.Amount:C}", FontWeights.Bold, TextAlignment.Center, Brushes.DarkRed));
+            newBalanceRow.Cells.Add(CreateCellWithBorder($"{newBalance:C}", FontWeights.Bold, TextAlignment.Center, Brushes.DarkRed));
             summaryTable.RowGroups[0].Rows.Add(newBalanceRow);
 
             flowDocument.Blocks.Add(summaryTable);

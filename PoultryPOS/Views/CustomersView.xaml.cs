@@ -230,7 +230,7 @@ namespace PoultryPOS.Views
                 {
                     var currentBalance = customer.Balance;
                     var originalBalance = currentBalance + payment.Amount;
-                    PrintPaymentReceipt(payment, customer, currentBalance);
+                    PrintPaymentReceipt(payment, customer, originalBalance, currentBalance);
                 }
             }
         }
@@ -711,7 +711,7 @@ namespace PoultryPOS.Views
                 var newBalance = customer.Balance - paymentAmount;
                 _customerService.UpdateBalance(customerId, newBalance);
 
-                PrintPaymentReceipt(payment, customer, newBalance);
+                PrintPaymentReceipt(payment, customer, customer.Balance, newBalance);
                 LoadData();
                 UpdateSummary();
                 ClearPaymentForm();
@@ -723,7 +723,7 @@ namespace PoultryPOS.Views
             }
         }
 
-        private async void PrintPaymentReceipt(Payment payment, Customer customer, decimal newBalance)
+        private async void PrintPaymentReceipt(Payment payment, Customer customer, decimal originalBalance, decimal newBalance)
         {
             try
             {
@@ -738,6 +738,7 @@ namespace PoultryPOS.Views
                     receiptId,
                     payment,
                     customer,
+                    originalBalance,
                     newBalance);
 
                 printDialog.PrintDocument(
@@ -751,11 +752,12 @@ namespace PoultryPOS.Views
         }
 
         private FlowDocument CreatePaymentReceiptDocument(
-            PrintDialog printDialog,
-            string receiptId,
-            Payment payment,
-            Customer customer,
-            decimal newBalance)
+         PrintDialog printDialog,
+         string receiptId,
+         Payment payment,
+         Customer customer,
+         decimal originalBalance,
+         decimal newBalance)
         {
             var flowDocument = new FlowDocument
             {
@@ -861,7 +863,7 @@ namespace PoultryPOS.Views
 
             var previousBalanceRow = new TableRow();
             previousBalanceRow.Cells.Add(CreateCellWithBorder("الرصيد السابق", FontWeights.Normal, TextAlignment.Right));
-            previousBalanceRow.Cells.Add(CreateCellWithBorder($"{customer.Balance:C}", FontWeights.Normal, TextAlignment.Center));
+            previousBalanceRow.Cells.Add(CreateCellWithBorder($"{originalBalance:C}", FontWeights.Normal, TextAlignment.Center));
             summaryTable.RowGroups[0].Rows.Add(previousBalanceRow);
 
             var paymentAmountRow = new TableRow();
@@ -919,6 +921,14 @@ namespace PoultryPOS.Views
                 FontWeight = FontWeights.Bold,
                 Foreground = Brushes.DarkGreen
             });
+            footer.Inlines.Add(new LineBreak());
+            footer.Inlines.Add(new Run("Thank you for your payment!")
+            {
+                FontSize = 14,
+                FontWeight = FontWeights.Normal,
+                Foreground = Brushes.DarkGreen
+            });
+
             flowDocument.Blocks.Add(footer);
 
             return flowDocument;
